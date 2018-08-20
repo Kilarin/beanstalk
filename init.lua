@@ -13,7 +13,7 @@
 --local bnst_yper360=48     --y units per one 360 degree rotation of a vine
 --local bnst_rot2radius=6   --radius of the secondary spiral
 --local bnst_rot2yper360=80 --y units per one 365 degree rotation of secondary spiral
--- ocal bnst_rot2direction=1  --direction of rotation of the outer spiral
+--local bnst_rot2direction=1  --direction of rotation of the outer spiral
 
 local bnst_per_level=16
 bnst_per_row=math.floor(math.sqrt(bnst_per_level))  --beanstalks per row are the sqrt of beanstalks per level
@@ -48,6 +48,8 @@ bnst_area=62000/bnst_per_row
 
 
 local bnst={ }
+
+--math.randomseed
 for b=0, bnst_max do
   bnst[b]={pos,rotradius,rotdirection,vineradius,vtot,yper360,rot2radius,rot2yper360,rot2direction,totradius,minp,maxp}
   bnst[b].pos={x,y,z}
