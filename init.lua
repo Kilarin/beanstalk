@@ -13,7 +13,7 @@
 --local bnst_yper360=48     --y units per one 360 degree rotation of a vine
 --local bnst_rot2radius=6   --radius of the secondary spiral
 --local bnst_rot2yper360=80 --y units per one 365 degree rotation of secondary spiral
---local bnst_rot2direction=1  --direction of rotation of the outer spiral
+-- ocal bnst_rot2direction=1  --direction of rotation of the outer spiral
 
 local bnst_per_level=16
 bnst_per_row=math.floor(math.sqrt(bnst_per_level))  --beanstalks per row are the sqrt of beanstalks per level
@@ -46,34 +46,89 @@ bnst_area=62000/bnst_per_row
 --	end --pos==nill
 --end --pos_to_string
 
+function voxel_circum(r)
+  if r==1 then return 4
+  elseif r==2 then return 8
+  else return 2*math.pi*r*0.88 --not perfect, but a pretty good estimate
+  end --if
+end --voxel_circum
+
+
+
+
+
+
 
 local bnst={ }
-
---math.randomseed
+local mg_params = minetest.get_mapgen_params()
+minetest.log("bnst list --------------------------------------")
 for b=0, bnst_max do
+  --add lv soon
+  --math.randomseed(mg_params.seed+lv*10000+b)  --add level once you include level
+  math.randomseed(mg_params.seed+b*100000)
   bnst[b]={pos,rotradius,rotdirection,vineradius,vtot,yper360,rot2radius,rot2yper360,rot2direction,totradius,minp,maxp}
   bnst[b].pos={x,y,z}
-  bnst[b].pos.x=-31000+(bnst_area/2)+(bnst_area* (b % bnst_per_row) ) --temporary
-  bnst[b].pos.z=-31000+(bnst_area/2)+(bnst_area* (math.floor(b/bnst_per_row) % bnst_per_row) ) --temporary
-  --minetest.log("-31000+(bnst_area/2)+(bnst_area* ((b/bnst_per_row) % bnst_per_row) )")
-  --minetest.log("-31000+("..(bnst_area/2)..")+("..bnst_area.."* (("..(b/bnst_per_row)..") %"..bnst_per_row..") )   >"..(b/bnst_per_row) % bnst_per_row) 
-  
-  bnst[b].pos.y=0                                  --temporary  
-  bnst[b].rotradius=6           --the radius the vines rotate around
-  bnst[b].rotdirection=1        --direction of rotation of the inner spiral
-  bnst[b].vineradius=4          --radius of each vine
-  bnst[b].vtot=3                --total number of vines
-  bnst[b].yper360=48            --y units per one 360 degree rotation of a vine
-  bnst[b].rot2radius=6          --radius of the secondary spiral
-  bnst[b].rot2yper360=80        --y units per one 365 degree rotation of secondary spiral
-  bnst[b].rot2direction=1       --direction of rotation of the outer spiral
+  --bnst[b].pos.x=-31000+(bnst_area/2)+(bnst_area* (b % bnst_per_row) ) --temporary
+  --bnst[b].pos.z=-31000+(bnst_area/2)+(bnst_area* (math.floor(b/bnst_per_row) % bnst_per_row) ) --temporary
+  --note that our random position is always at least 500 from the border, so that beanstalks can NEVER be right next to each other
+  bnst[b].pos.x=-31000 + (bnst_area * (b % bnst_per_row) + 500+math.random(0,bnst_area-1000) )
+  bnst[b].pos.z=-31000 + (bnst_area * (math.floor(b/bnst_per_row) % bnst_per_row) + 500 + math.random(0,bnst_area-1000) )
+
+  bnst[b].pos.y=-10              --temporary  should be based on level
+
+  --total number of vines
+  if math.random(1,4)<4 then bnst[b].vtot=3
+  else bnst[b].vtot=math.random(2,5)
+  end
+
+  --the radius the vines rotate around
+  if math.random(1,4)<4 then bnst[b].rotradius=math.random(5,7)
+  else bnst[b].rotradius=math.random(3,10)
+  end
+
+  --direction of rotation of the inner spiral
+  if math.random(1,2)==1 then bnst[b].rotdirection=1
+  else bnst[b].rotdirection=-1
+  end
+
+  --radius of each vine
+  if math.random(1,4)<4 then bnst[b].vineradius=math.random(2,6)
+  else bnst[b].vineradius=math.random(3,9)
+  end
+
+  --y units per one 360 degree rotation of a vine
+  local c=voxel_circum(bnst[b].rotradius)
+  if math.random(1,4)<4 then bnst[b].yper360=math.random(c,80)
+  else bnst[b].yper360=math.floor(math.random(c*0.75,500))
+  end
+
+  --radius of the secondary spiral
+  if math.random(1,4)<4 then bnst[b].rot2radius=math.random(bnst[b].rotradius,bnst[b].rotradius+5)
+  else bnst[b].rot2radius=math.random(5,20)
+  end
+
+  --y units per one 365 degree rotation of secondary spiral
+  local c=voxel_circum(bnst[b].rot2radius)
+  if math.random(1,4)<4 then bnst[b].rot2yper360=math.random(c,100)
+  else bnst[b].rot2yper360=math.floor(math.random(c*0.75,500))
+  end
+
+  --direction of rotation of the outer spiral
+  if math.random(1,4)<4 then bnst[b].rot2direction=bnst[b].rotdirection
+  else bnst[b].rot2direction=-bnst[b].rotdirection
+  end
+
   -- total radius = rotradius (radius vines circle around) + vine radius + 2 more for a space around the beanstalk (will be air)
   bnst[b].totradius=bnst[b].rotradius+bnst[b].vineradius+2
   bnst[b].minp={x=bnst[b].pos.x-bnst[b].totradius, y=bnst[b].pos.y, z=bnst[b].pos.z-bnst[b].totradius}
-  bnst[b].maxp={x=bnst[b].pos.x+bnst[b].totradius, y=5000, z=bnst[b].pos.z+bnst[b].totradius}  --y=5000 is temp  
-  minetest.log("bnst["..b.."] "..pos_to_string(bnst[b].pos).." minp="..pos_to_string(bnst[b].minp).." maxp="..pos_to_string(bnst[b].maxp))
+  bnst[b].maxp={x=bnst[b].pos.x+bnst[b].totradius, y=5000, z=bnst[b].pos.z+bnst[b].totradius}  --y=5000 is temp
+  --minetest.log("bnst["..b.."] "..pos_to_string(bnst[b].pos).." minp="..pos_to_string(bnst[b].minp).." maxp="..pos_to_string(bnst[b].maxp))
+  minetest.log("bnst["..b.."] "..pos_to_string(bnst[b].pos).." vtot="..bnst[b].vtot.." rotradius="..bnst[b].rotradius..
+    " rotdirection="..bnst[b].rotdirection.." vineradius="..bnst[b].vineradius.." yper360="..bnst[b].yper360)
+  minetest.log("-------- rot2radius="..bnst[b].rot2radius.." rot2yper360="..bnst[b].rot2yper360.." rot2direction="..bnst[b].rot2direction..
+    " minp="..pos_to_string(bnst[b].minp).." maxp="..pos_to_string(bnst[b].maxp))
   end --for
---2018-08-19 13:30:17: [Main]: bnst[0] (-23250,0,-23250) min=(-23262,0,-23262) max=(-23238,5000,-23238)  
+  minetest.log("bnst list --------------------------------------")  
 
 
 -- one vine straight up
@@ -210,17 +265,17 @@ function beanstalk(minp, maxp, seed)
   --minetest.log("-xbnstx- minp="..pos_to_string(minp).." maxp="..pos_to_string(maxp))
   local i=-1
   local b=-1
-  repeat  
+  repeat
     i=i+1
     minetest.log("-xbnstx- bnst["..i.."] "..pos_to_string(bnst[i].pos).." min="..pos_to_string(bnst[i].minp).." max="..pos_to_string(bnst[i].maxp))
-    --this checks to see if the chunk is within the beanstalk area     
+    --this checks to see if the chunk is within the beanstalk area
     if minp.x<=bnst[i].maxp.x and maxp.x>=bnst[i].minp.x and
        minp.y<=bnst[i].maxp.y and maxp.y>=bnst[i].minp.y and
-       minp.z<=bnst[i].maxp.z and maxp.z>=bnst[i].minp.z then        
+       minp.z<=bnst[i].maxp.z and maxp.z>=bnst[i].minp.z then
          b=i  --we are in the beanstalk!
-    end --if    
+    end --if
   until i==bnst_max or b>-1
-  if b<0 then return end--quit; otherwise, you'd have wasted resources  
+  if b<0 then return end--quit; otherwise, you'd have wasted resources
   --minetest.log("bnst["..b.."] accepted: min=("..minp.x..","..minp.y..","..minp.z..") max=("..maxp.x..","..maxp.y..","..maxp.z..")")
 
   --easy reference to commonly used values
