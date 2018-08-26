@@ -23,28 +23,6 @@ local bnst_max=bnst_count-1  --for use in array
 bnst_area=62000/bnst_per_row
 
 
---returns a pos that is rounded special case.  round 0 digits for X and Z,
---round 1 digit for Y
---function beanstalk.round_pos(pos)
---  pos.x=beanstalk.round_digits(pos.x,0)
---  pos.y=beanstalk.round_digits(pos.y,1)
---  pos.z=beanstalk.round_digits(pos.z,0)
---  return pos
---end --round_pos
---
---function beanstalk.round_digits(num,digits)
---	if num >= 0 then return math.floor(num*(10^digits)+0.5)/(10^digits)
---  else return math.ceil(num*(10^digits)-0.5)/(10^digits)
---  end
---end --round_digits
---
---function beanstalk.pos_to_string(pos)
---	if pos==nil then return "(nil)"
---	else
---    pos=beanstalk.round_pos(pos)
---    return "("..pos.x.." "..pos.y.." "..pos.z..")"
---	end --pos==nill
---end --pos_to_string
 
 function voxel_circum(r)
   if r==1 then return 4
@@ -122,11 +100,11 @@ for b=0, bnst_max do
   bnst[b].totradius=bnst[b].rotradius+bnst[b].vineradius+2
   bnst[b].minp={x=bnst[b].pos.x-bnst[b].totradius, y=bnst[b].pos.y, z=bnst[b].pos.z-bnst[b].totradius}
   bnst[b].maxp={x=bnst[b].pos.x+bnst[b].totradius, y=5000, z=bnst[b].pos.z+bnst[b].totradius}  --y=5000 is temp
-  --minetest.log("bnst["..b.."] "..pos_to_string(bnst[b].pos).." minp="..pos_to_string(bnst[b].minp).." maxp="..pos_to_string(bnst[b].maxp))
-  minetest.log("bnst["..b.."] "..pos_to_string(bnst[b].pos).." vtot="..bnst[b].vtot.." rotradius="..bnst[b].rotradius..
+  --minetest.log("bnst["..b.."] "..minetest.pos_to_string(bnst[b].pos).." minp="..minetest.pos_to_string(bnst[b].minp).." maxp="..minetest.pos_to_string(bnst[b].maxp))
+  minetest.log("bnst["..b.."] "..minetest.pos_to_string(bnst[b].pos).." vtot="..bnst[b].vtot.." rotradius="..bnst[b].rotradius..
     " rotdirection="..bnst[b].rotdirection.." vineradius="..bnst[b].vineradius.." yper360="..bnst[b].yper360)
   minetest.log("-------- rot2radius="..bnst[b].rot2radius.." rot2yper360="..bnst[b].rot2yper360.." rot2direction="..bnst[b].rot2direction..
-    " minp="..pos_to_string(bnst[b].minp).." maxp="..pos_to_string(bnst[b].maxp))
+    " minp="..minetest.pos_to_string(bnst[b].minp).." maxp="..minetest.pos_to_string(bnst[b].maxp))
   end --for
   minetest.log("bnst list --------------------------------------")  
 
@@ -262,12 +240,12 @@ end --checkvines
 --minp is the min point of the chunk, maxp is the max point of the chunk
 function beanstalk(minp, maxp, seed)
   --dont bother if we are not near the bean stalk
-  --minetest.log("-xbnstx- minp="..pos_to_string(minp).." maxp="..pos_to_string(maxp))
+  --minetest.log("-xbnstx- minp="..minetest.pos_to_string(minp).." maxp="..minetest.pos_to_string(maxp))
   local i=-1
   local b=-1
   repeat
     i=i+1
-    minetest.log("-xbnstx- bnst["..i.."] "..pos_to_string(bnst[i].pos).." min="..pos_to_string(bnst[i].minp).." max="..pos_to_string(bnst[i].maxp))
+    minetest.log("-xbnstx- bnst["..i.."] "..minetest.pos_to_string(bnst[i].pos).." min="..minetest.pos_to_string(bnst[i].minp).." max="..minetest.pos_to_string(bnst[i].maxp))
     --this checks to see if the chunk is within the beanstalk area
     if minp.x<=bnst[i].maxp.x and maxp.x>=bnst[i].minp.x and
        minp.y<=bnst[i].maxp.y and maxp.y>=bnst[i].minp.y and
@@ -381,4 +359,3 @@ end -- beanstalk
 
 
 minetest.register_on_generated(beanstalk)
-
