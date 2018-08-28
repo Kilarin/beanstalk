@@ -178,7 +178,7 @@ local c_air = minetest.get_content_id("air")
 
 --this function checks to see if a node should have vines.
 --parms: x,y,z pos of this node, vcx vcz center of this vine, also pass area and data so we can check below
-function checkvines(x,y,z, vcx,vcz, area,data)  
+function checkvines(x,y,z, vcx,vcz, area,data)
   local vn = area:index(x, y, z)  --we get the node we are checking
   local vndown = area:index(x, y-1, z)  --and the node right below the one we are checking
   --if vn is not beanstalk or vines, and vndown is not beanstalk, then we will place a vine
@@ -212,8 +212,8 @@ end --checkvines
 --minetest.register_on_generated(beanstalk)
 --minp is the min point of the chunk, maxp is the max point of the chunk
 function beanstalk(minp, maxp, seed)
-  --we dont want to waste any time in this function if the chunk doesnt have 
-  --a beanstalk in it.  
+  --we dont want to waste any time in this function if the chunk doesnt have
+  --a beanstalk in it.
   --so first we loop through the levels, if our chunk is not on a level where beanstalks
   --exist, we just do a return
   local chklv=-1
@@ -224,7 +224,7 @@ function beanstalk(minp, maxp, seed)
   until chklv==bnst_level_max or lv>-1
   if lv<0 then return end  --quit, we didn't match any level
 
-  --now we know we are on a level with beanstalks, so we now need to check each beanstalk to 
+  --now we know we are on a level with beanstalks, so we now need to check each beanstalk to
   --see if they intersect this chunk, if not, we return and waste no more cpu.
   --I think this could be made more efficent, seems we should be able to zero in on which
   --beanstalk to check better than just looping through them.
@@ -243,7 +243,7 @@ function beanstalk(minp, maxp, seed)
 
   --ok, now we know we are in a chunk that has beanstalk in it, so we need to do the work
   --required to generate the beanstalk
-  
+
   --easy reference to commonly used values
   local t1 = os.clock()
   local x1 = maxp.x
@@ -268,7 +268,7 @@ function beanstalk(minp, maxp, seed)
 
   local y
   local a
-  
+
   --y0 is the bottom of the chunk, but if y0<the bottom of the beanstalk, then we
   --will reset y to the bottom of the beanstalk to avoid wasting cpu
   y=y0
@@ -292,7 +292,7 @@ function beanstalk(minp, maxp, seed)
       vinex[v]=cx+bnst[lv][b].rotradius*math.cos(a*math.pi/180)
       vinez[v]=cz+bnst[lv][b].rotradius*math.sin(a*math.pi/180)
     end --for v
-    
+
     --these two for loops loop through the chunk based x and z
     for x=x0, x1 do
       for z=z0, z1 do
@@ -345,7 +345,50 @@ end -- beanstalk
 minetest.register_on_generated(beanstalk)
 
 
+--list_beanstalks and go_beanstalk are mainly here for testing
+--neither one will probably stay once this is complete
+function list_beanstalks(playername)
+  local player = minetest.get_player_by_name(playername)
+  local lv=0
+  local b
+  for lv=0,bnst_level_max do  --loop through the levels
+    minetest.chat_send_player(playername,"***bnst level="..lv.." ***")
+    for b=0,bnst_max[lv] do   --loop through the beanstalks
+       minetest.chat_send_player(playername, bnst[lv][b].desc.." "..minetest.pos_to_string(bnst[lv][b].pos))
+    end --for b
+  end --for lv
+end --list_beanstalks
 
+function go_beanstalk(playername,param)
+  local player = minetest.get_player_by_name(playername)
+  if param=="" then minetest.chat_send_player(playername,"format is go_beanstalk <lv>,<b>") 
+  else
+		--local lv, b = param:find("^(-?%d+)[, ](-?%d+)$")  --splits param on comma or space
+    local slv,sb = string.match(param,"([^,]+),([^,]+)")
+    local lv=tonumber(slv)
+    local b=tonumber(sb)
+    local pos=bnst[lv][b].pos
+    pos.x=pos.x+bnst[lv][b].totradius+2
+    pos.y=pos.y+12
+    player:setpos(pos)
+  end --if  
+end --go_beanstalk
+
+minetest.register_chatcommand("go_beanstalk", {
+	params = "<lv> <b>",
+	description = "go_beanstalk <lv>,<b>: teleport to beanstalk location",
+	func = function (name,param)
+		go_beanstalk(name,param)
+	end,
+})
+
+minetest.register_chatcommand("list_beanstalks", {
+	params = "",
+	description = "list_beanstalks: list the beanstalk locations",
+	func = function (name, param)
+		list_beanstalks(name)
+	end,
+})
 
 
 
