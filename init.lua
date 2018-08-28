@@ -57,7 +57,7 @@ for lv=0,bnst_level_max do  --loop through the levels
     math.randomseed(mg_params.seed+ lv*10000000+b*100000)
 
     --this defines the variable, but I must be doing it wrong because I'm getting warnings about globals
-    bnst[lv][b]={pos,rotradius,rotdirection,vineradius,vtot,yper360,rot2radius,rot2yper360,rot2direction,totradius,minp,maxp,desc}
+    bnst[lv][b]={pos,rotradius,rotdirection,vineradius,vtot,yper360,rot2radius,rot2yper360,rot2direction,totradius,fullradius,minp,maxp,desc}
 
     bnst[lv][b].pos={x,y,z}
     --note that our random position is always at least 500 from the border, so that beanstalks can NEVER be right next to each other
@@ -107,10 +107,17 @@ for lv=0,bnst_level_max do  --loop through the levels
     else bnst[lv][b].rot2direction=-bnst[lv][b].rotdirection
     end
 
-    -- total radius = rotradius (radius vines circle around) + vine radius + 2 more for a space around the beanstalk (will be air)
+    -- total radius = rotradius (radius vines circle around) + vine radius + 2 more for a space around the beanstalk (will be air)    
+    -- so this is the total radius around the current center
     bnst[lv][b].totradius=bnst[lv][b].rotradius+bnst[lv][b].vineradius+2
-    bnst[lv][b].minp={x=bnst[lv][b].pos.x-bnst[lv][b].totradius, y=bnst[lv][b].pos.y, z=bnst[lv][b].pos.z-bnst[lv][b].totradius}
-    bnst[lv][b].maxp={x=bnst[lv][b].pos.x+bnst[lv][b].totradius, y=bnst_top[lv], z=bnst[lv][b].pos.z+bnst[lv][b].totradius}
+    -- but totradius can not be used for determining min and maxp, because the current center moves! for that we need     
+    -- full radius = max diameter of entire beanstalk including outer spiral (rot2radius)
+    bnst[lv][b].fullradius=bnst[lv][b].totradius+bnst[lv][b].rot2radius
+    bnst[lv][b].minp={x=bnst[lv][b].pos.x-bnst[lv][b].fullradius, y=bnst[lv][b].pos.y, z=bnst[lv][b].pos.z-bnst[lv][b].fullradius}
+    bnst[lv][b].maxp={x=bnst[lv][b].pos.x+bnst[lv][b].fullradius, y=bnst_top[lv], z=bnst[lv][b].pos.z+bnst[lv][b].fullradius}
+    minetest.log("bnstz["..lv.."]["..b.."]: rotradius="..bnst[lv][b].rotradius.." vineradius="..bnst[lv][b].vineradius..
+        " totradius="..bnst[lv][b].totradius.." fullradius="..bnst[lv][b].fullradius..
+        " minp="..minetest.pos_to_string(bnst[lv][b].minp).." maxp="..minetest.pos_to_string(bnst[lv][b].maxp))
 
     --display it
     --minetest.log("bnst["..lv.."]["..b.."] "..minetest.pos_to_string(bnst[lv][b].pos).." vtot="..bnst[lv][b].vtot..
@@ -267,7 +274,8 @@ function beanstalk(minp, maxp, seed)
   local vinez={ }
 
   local y
-  local a
+  local a1
+  local a2
 
   --y0 is the bottom of the chunk, but if y0<the bottom of the beanstalk, then we
   --will reset y to the bottom of the beanstalk to avoid wasting cpu
@@ -282,15 +290,15 @@ function beanstalk(minp, maxp, seed)
   --this top repeat is where we loop through the chunk based on y
   repeat
     --lets get the beanstalk center based on 2ndary spiral
-    a=(360/bnst[lv][b].rot2yper360)*(y % bnst[lv][b].rot2yper360)*bnst[lv][b].rot2direction
-    cx=bnst[lv][b].pos.x+bnst[lv][b].rot2radius*math.cos(a*math.pi/180)
-    cz=bnst[lv][b].pos.z+bnst[lv][b].rot2radius*math.sin(a*math.pi/180)
-
+    a2=(360/bnst[lv][b].rot2yper360)*(y % bnst[lv][b].rot2yper360)*bnst[lv][b].rot2direction
+    cx=bnst[lv][b].pos.x+bnst[lv][b].rot2radius*math.cos(a2*math.pi/180)
+    cz=bnst[lv][b].pos.z+bnst[lv][b].rot2radius*math.sin(a2*math.pi/180)
+    
     --now cx and cz are the new center of the beanstalk
     for v=0, bnst[lv][b].vtot-1 do --calculate centers for each vine
-      a=(360/bnst[lv][b].vtot)*v+(360/bnst[lv][b].yper360)*(y % bnst[lv][b].yper360)*bnst[lv][b].rotdirection
-      vinex[v]=cx+bnst[lv][b].rotradius*math.cos(a*math.pi/180)
-      vinez[v]=cz+bnst[lv][b].rotradius*math.sin(a*math.pi/180)
+      a1=(360/bnst[lv][b].vtot)*v+(360/bnst[lv][b].yper360)*(y % bnst[lv][b].yper360)*bnst[lv][b].rotdirection
+      vinex[v]=cx+bnst[lv][b].rotradius*math.cos(a1*math.pi/180)
+      vinez[v]=cz+bnst[lv][b].rotradius*math.sin(a1*math.pi/180)
     end --for v
 
     --these two for loops loop through the chunk based x and z
@@ -367,10 +375,11 @@ function go_beanstalk(playername,param)
     local slv,sb = string.match(param,"([^,]+),([^,]+)")
     local lv=tonumber(slv)
     local b=tonumber(sb)
-    local pos=bnst[lv][b].pos
-    pos.x=pos.x+bnst[lv][b].totradius+2
-    pos.y=pos.y+12
-    player:setpos(pos)
+    local p={x=bnst[lv][b].pos.x,y=bnst[lv][b].pos.y,z=bnst[lv][b].pos.z}
+    --NEVER do local p=bnst[lv][b].pos passes by reference not value and you will change the original bnst pos!
+    p.x=p.x+bnst[lv][b].fullradius+2
+    p.y=p.y+13
+    player:setpos(p)
   end --if  
 end --go_beanstalk
 
@@ -424,3 +433,10 @@ minetest.register_chatcommand("list_beanstalks", {
 --local bnst_rot2radius=6   --radius of the secondary spiral
 --local bnst_rot2yper360=80 --y units per one 365 degree rotation of secondary spiral
 --local bnst_rot2direction=1  --direction of rotation of the outer spiral
+
+--      minetest.log("---bnstc["..lv.."]["..b.."]: v="..v.." y="..y.." a2="..a2.." a1="..a1.." rot2yper360="..bnst[lv][b].rot2yper360..
+--          " rot2direction="..bnst[lv][b].rot2direction.." rot2radius="..bnst[lv][b].rot2radius.." yper360="..bnst[lv][b].yper360)
+--      minetest.log("bnstC["..lv.."]["..b.."] rotdirection="..bnst[lv][b].rotdirection.." rotradius="..bnst[lv][b].rotradius..
+--          " pos="..minetest.pos_to_string(bnst[lv][b].pos).." cos="..math.cos(a2*math.pi/180))
+--      minetest.log("bnstC["..lv.."]["..b.."]: cx="..cx.." cz="..cz.." vinex="..vinex[v].." vinez="..vinez[v])
+--      minetest.log("bnstc["..lv.."]["..b.."]: y % rot2yper360="..(y % bnst[lv][b].rot2yper360).." y % yper360="..y % bnst[lv][b].yper360)
