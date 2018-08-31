@@ -2,7 +2,7 @@
 
 ---
 --- constants
---- (you dont need to set these here)
+---
 local bnst_count = { }
 local bnst_per_row = { }
 local bnst_max = { }  --count minus 1, for loops
@@ -11,13 +11,31 @@ local bnst_height = { }
 local bnst_bot = { }
 local bnst_top = { }
 
---These are the constants that need to be modified based on your game needs
+--
 local bnst_level_max=0  --(counting up from 0, what is the highest "level" of beanstalks?)
+
 --define by level  (each beanstalk level must have these values defined.  might add "weirdness" and specialized nodes?)
 bnst_count[0]=16
 bnst_bot[0]=-10
 bnst_height[0]=6000
 
+--calculated constants by level
+for lv=0,bnst_level_max do
+  bnst_per_row[lv]=math.floor(math.sqrt(bnst_count[lv]))  --beanstalks per row are the sqrt of beanstalks per level
+  bnst_count[lv]=bnst_per_row[lv]*bnst_per_row[lv]  --recalculate to a perfect square
+  bnst_max[lv]=bnst_count[lv]-1  --for use in array
+  bnst_area[lv]=62000/bnst_per_row[lv]
+  bnst_top[lv]=bnst_bot[lv]+bnst_height[lv]-1
+end --for
+
+--this function calculates (very approximately) the circumference of a circle of radius r in voxels
+--this could be made much more accurate
+function voxel_circum(r)
+  if r==1 then return 4
+  elseif r==2 then return 8
+  else return 2*math.pi*r*0.88 --not perfect, but a pretty good estimate
+  end --if
+end --voxel_circum
 
 --this is the perlin noise that will be used for "crazy" beanstalks
 --I don't really understand how these parms work, but this link has
@@ -32,31 +50,9 @@ local np_crazy =
 	spread = {x=15, y=8, z=8},
    seed = 0, --this will be overriden
    octaves = 1,
-   persist = 0.67
+   persist = 0.67    
    }
 
-
---this function calculates (very approximately) the circumference of a circle of radius r in voxels
---this could be made much more accurate
---this function has to be way up here because it has to be defined before it is used
-function voxel_circum(r)
-  if r==1 then return 4
-  elseif r==2 then return 8
-  else return 2*math.pi*r*0.88 --not perfect, but a pretty good estimate
-  end --if
-end --voxel_circum
-
-
--- the code here that is directly in the init.lua and not in an a function will run at the start of the game
-
---calculated constants by level
-for lv=0,bnst_level_max do
-  bnst_per_row[lv]=math.floor(math.sqrt(bnst_count[lv]))  --beanstalks per row are the sqrt of beanstalks per level
-  bnst_count[lv]=bnst_per_row[lv]*bnst_per_row[lv]  --recalculate to a perfect square
-  bnst_max[lv]=bnst_count[lv]-1  --for use in array
-  bnst_area[lv]=62000/bnst_per_row[lv]
-  bnst_top[lv]=bnst_bot[lv]+bnst_height[lv]-1
-end --for
 
 --here we calculate the beanstalks based on the map seed, level, and beanstalk.
 --so this should be consistent for any game with the same seed.
@@ -73,7 +69,6 @@ minetest.log("bnst list --------------------------------------")
 for lv=0,bnst_level_max do  --loop through the levels
   minetest.log("***bnst level="..lv.." ***")
   for b=0,bnst_max[lv] do   --loop through the beanstalks
-  
     --this defines the variable, but I must be doing it wrong because I'm getting warnings about globals
     bnst[lv][b]={pos,rot1radius,rot1dir,vineradius,vtot,yper360,rot2radius,rot2yper360,rot2dir,
                  totradius,fullradius,minp,maxp,desc,seed,crazy1,crazy2,rot1min,rot1max,rot2min,rot2max,noise1,noise2}
@@ -125,8 +120,8 @@ for lv=0,bnst_level_max do  --loop through the levels
     else bnst[lv][b].rot2radius=math.floor(math.random(0,16))
     end
     bnst[lv][b].rot2min=bnst[lv][b].rot2radius --default if we dont set crazy
-    bnst[lv][b].rot2max=bnst[lv][b].rot2radius --default if we dont set crazy
-
+    bnst[lv][b].rot2max=bnst[lv][b].rot2radius --default if we dont set crazy    
+    
     --y units per one 365 degree rotation of secondary spiral
     local c=voxel_circum(bnst[lv][b].rot2radius)
     if math.random(1,4)<4 then bnst[lv][b].rot2yper360=math.floor(math.random(c,100))
@@ -155,30 +150,28 @@ for lv=0,bnst_level_max do  --loop through the levels
       bnst[lv][b].rot1min=bnst[lv][b].rot1radius-bnst[lv][b].crazy1
       if bnst[lv][b].rot1min<bnst[lv][b].vineradius then --we dont want min to be too small
         bnst[lv][b].rot1max=bnst[lv][b].rot1max+(bnst[lv][b].vineradius-bnst[lv][b].rot1min) --add what we take off the min to the max
-        bnst[lv][b].rot1min=bnst[lv][b].vineradius
+        bnst[lv][b].rot1min=bnst[lv][b].vineradius        
       end --if rot1min<vineradius
-    --now, right here would be a GREAT place to create and store the perlin noise.    
-    --BUT, you can do that at this point, because the map isn't generated.  and for some odd reason, the perlin noise function
-    --exits as nil if you use it before map generation.  so we will do it in the generation loop    
-    --perlin noise is random, but SMOOTH, so it makes interesting looking vine changes.
-    --we need to play with the perlin noise values and see if we can get results we like better
-    end --if crazy1>0
-
+    --now, right here would be a GREAT place to create and store the perlin noise.
+    --BUT, you can do that at this point, because the map isn't generated.  so we will do it in a minetest.after
+    --or, since I dont understand minetest.after, I can just built it in.      
+    end --if crazy1>0        
+        
     --crazy2 like crazy1, but this is for the outer spiral
     bnst[lv][b].noise2=nil
-    bnst[lv][b].crazy2=math.random(1,18)-9
+    bnst[lv][b].crazy2=math.random(1,18)-9   
     if bnst[lv][b].crazy2<0 then bnst[lv][b].crazy2=0 end
-    if bnst[lv][b].crazy2>0 then
-      bnst[lv][b].crazy2=bnst[lv][b].crazy2+2
+    if bnst[lv][b].crazy2>0 then    
+      bnst[lv][b].crazy2=bnst[lv][b].crazy2+2    
       --determine the min and max we will move the rot2radius through
       bnst[lv][b].rot2max=bnst[lv][b].rot2radius+bnst[lv][b].crazy2
       bnst[lv][b].rot2min=bnst[lv][b].rot2radius-bnst[lv][b].crazy2
       if bnst[lv][b].rot2min<0 then --we dont want min to be too small
         bnst[lv][b].rot2max=bnst[lv][b].rot2max+math.abs(bnst[lv][b].rot2min) --add what we take off the min to the max
         bnst[lv][b].rot2min=0
-      end --if rot2min<0
-    end --if crazy2>0
-
+      end --if rot2min<0      
+    end --if crazy2>0   
+  
     -- total radius = rot1radius (radius vines circle around) + vine radius + 2 more for a space around the beanstalk (will be air)
     -- so this is the total radius around the current center
     bnst[lv][b].totradius=bnst[lv][b].rot1max+bnst[lv][b].vineradius+2
@@ -204,10 +197,8 @@ minetest.log("bnst list --------------------------------------")
 
 
 
---this registers the beanstalk node
---in future, we might want different nodes with different colors/patterns
---to be used on different levels?
---also, may want to make this NOT flamable and hard to chop?
+
+
 minetest.register_node("beanstalk:beanstalk", {
   description = "Beanstalk Big Vine",
   tiles = {"beanstalk_top_32.png", "beanstalk_top_32.png", "beanstalk_side_32.png"},
@@ -223,9 +214,6 @@ minetest.register_node("beanstalk:beanstalk", {
   --end,
 })
 
---this registers the vine node.  later we might want to make this so
---that it only registers a new node if you are not using a mod that 
---already has vines.
 --copied from ethereal
 minetest.register_node("beanstalk:vine", {
   description = "BeanstalkVine",
@@ -245,6 +233,7 @@ minetest.register_node("beanstalk:vine", {
   legacy_wallmounted = true,
   sounds = default.node_sound_leaves_defaults(),
 })
+
 
 
 --grab content IDs -- You need these to efficiently access and set node data.  get_node() works, but is far slower
@@ -330,7 +319,7 @@ function beanstalk(minp, maxp, seed)
   local x0 = minp.x
   local y0 = minp.y
   local ymin=minp.y
-  local z0 = minp.z
+  local z0 = minp.z  
 
   --minetest.log("bs [beanstalk_gen] chunk minp ("..x0.." "..y0.." "..z0..")") --tell people you are generating a chunk
 
@@ -343,7 +332,7 @@ function beanstalk(minp, maxp, seed)
   local vinex={ } --initializing the variable so we can use it for an array later
   local vinez={ }
   local rot1radius
-  local rot2radius
+  local rot2radius  
   local y
   local a1
   local a2
@@ -358,61 +347,60 @@ function beanstalk(minp, maxp, seed)
     y=bnst[lv][b].minp.y  --no need to start below the beanstalk
   end
 
-  repeat  --this top repeat is where we loop through the chunk based on y
+  --this top repeat is where we loop through the chunk based on y
+  repeat
+  
     --calculate crazy1
     rot1radius=bnst[lv][b].rot1radius
     if bnst[lv][b].crazy1>0 then
       if bnst[lv][b].noise1==nil then
-        --couldnt create the noise before mapgen, so doing it now (and only once per beanstalk)
+        --couldnt create the noise before mapgen, so doing it now
         --I really only need 1d noise.  chulens defines the area of noise generated
         --I am defining the x axis only
         local chulens = {x=bnst_height[lv], y=1, z=1}
-        local minposxz = {x=0, y=0}
+        local minposxz = {x=0, y=0}   
         np_crazy.seed=bnst[lv][b].seed
-        --really might want to change some of the other values based on how big the crazy number is?
-        bnst[lv][b].noise1 = minetest.get_perlin_map(np_crazy, chulens):get2dMap_flat(minposxz)
-        --now noise1 is an array indexed from 1 to height and
-        --with each value in the range from -1 to 1 with fairly smooth changes
+        bnst[lv][b].noise1 = minetest.get_perlin_map(np_crazy, chulens):get2dMap_flat(minposxz) 
+        local midrange=(bnst[lv][b].rot1max-bnst[lv][b].rot1min)/2
       end --if noise==nil
-      --so I've got a noise number from -1 to 1, I need to turn it into a radius in the range min to max
-      local midrange=(bnst[lv][b].rot1max-bnst[lv][b].rot1min)/2 --middle of our range
+      --so I've got a number from -1 to 1, I need to turn it into a radius in the range min to max
+      local midrange=(bnst[lv][b].rot1max-bnst[lv][b].rot1min)/2
       ylvl=y-bnst[lv][b].pos.y+1 --the array goes from 1 up, so we add 1
-      rot1radius=math.floor(bnst[lv][b].rot1min+(midrange+(midrange*bnst[lv][b].noise1[ylvl])))
+      rot1radius=math.floor(bnst[lv][b].rot1min+(midrange+(midrange*bnst[lv][b].noise1[ylvl])))  
     end --if crazy1>0
-
+           
     --calculate crazy2
-    rot2radius=bnst[lv][b].rot2radius
+    rot2radius=bnst[lv][b].rot2radius 
     if bnst[lv][b].crazy2>0 then
       if bnst[lv][b].noise2==nil then
         --couldnt create the noise before mapgen, so doing it now
+        --I really only need 1d noise.  chulens defines the area of noise generated
+        --I am defining the x axis only
         local chulens = {x=bnst_height[lv], y=1, z=1}
-        local minposxz = {x=0, y=0}
-        np_crazy.seed=bnst[lv][b].seed*2  --times 2 so it will be different than noise1                
-        bnst[lv][b].noise2 = minetest.get_perlin_map(np_crazy, chulens):get2dMap_flat(minposxz)
+        local minposxz = {x=0, y=0}   
+        np_crazy.seed=bnst[lv][b].seed*2  --times 2 so it will be different than noise1
+        bnst[lv][b].noise2 = minetest.get_perlin_map(np_crazy, chulens):get2dMap_flat(minposxz) 
         local midrange=(bnst[lv][b].rot2max-bnst[lv][b].rot2min)/2
       end --if noise2==nil
       --so I've got a number from -1 to 1, I need to turn it into a radius in the range min to max
       local midrange=(bnst[lv][b].rot2max-bnst[lv][b].rot2min)/2
       ylvl=y-bnst[lv][b].pos.y+1 --the array goes from 1 up, so we add 1
-      rot2radius=math.floor(bnst[lv][b].rot2min+(midrange+(midrange*bnst[lv][b].noise2[ylvl])))
-     end --if crazy2>0
-     
-     --now, if we had "crazy" we set local rot1radius and rot2radius above.  if we didnt
-     --the same locals were set to the beanstalk values.  we use the local values below
+      rot2radius=math.floor(bnst[lv][b].rot2min+(midrange+(midrange*bnst[lv][b].noise2[ylvl])))      
+     end --if crazy2>0    
 
     --lets get the beanstalk center based on 2ndary spiral
     a2=(360/bnst[lv][b].rot2yper360)*(y % bnst[lv][b].rot2yper360)*bnst[lv][b].rot2dir
     cx=bnst[lv][b].pos.x+rot2radius*math.cos(a2*math.pi/180)
     cz=bnst[lv][b].pos.z+rot2radius*math.sin(a2*math.pi/180)
+
     --now cx and cz are the new center of the beanstalk
-    
-    for v=0, bnst[lv][b].vtot-1 do --calculate centers for each vine
+    for v=0, bnst[lv][b].vtot-1 do --calculate centers for each vine    
       -- an attempt to explain this rather complicated looking formula:
-      -- (360/bnst[lv][b].vtot)*v       gives me starting angle for this vine
+      -- (360/bnst[lv][b].vtot)*v gives me starting angle for this vine
       -- +(360/bnst[lv][b].rot1yper360) add the change in angle for each y up
-      --   (y-bnst[lv][b].pos.y)        the y pos in this beanstalk
-      --                         % bnst[lv][b].rot1yper360)  get mod of yper360, together this gives us how many y up we are (for this section)
-      -- *((y-bnst[lv][b].pos.y) % bnst[lv][b].rot1yper360)  multiply change in angle for each y, by how many y up we are in this section
+      --   (y-bnst[lv][b].pos.y) is the y pos in this beanstalk
+      --                         % bnst[lv][b].rot1yper360)  is mod of yper360, together this gives us how many y up we are (for this section)
+      -- *((y-bnst[lv][b].pos.y) % bnst[lv][b].rot1yper360)  multiply change in angle for each y, by how many y
       -- *bnst[lv][b].rot1dir  makes us rotate clockwise or counter clockwise
       a1=(360/bnst[lv][b].vtot)*v+(360/bnst[lv][b].rot1yper360)*((y-bnst[lv][b].pos.y) % bnst[lv][b].rot1yper360)*bnst[lv][b].rot1dir
       --now that we have the rot2 center cx,cz, and the offset angle, we can calculate the center of this vine
@@ -420,35 +408,32 @@ function beanstalk(minp, maxp, seed)
       vinez[v]=cz+rot1radius*math.sin(a1*math.pi/180)
     end --for v
 
-    --we are inside the repeat loop that loops through the chunc based on y (from bottom up)
     --these two for loops loop through the chunk based x and z
     for x=x0, x1 do
       for z=z0, z1 do
         local vi = area:index(x, y, z) -- This accesses the node at a given position
         local changedthis=false
         local v=0
-        repeat  --loops through the vines until we set the node or run out of vines
+        repeat
           local dist=math.sqrt((x-vinex[v])^2+(z-vinez[v])^2)
           if dist <= bnst[lv][b].vineradius then  --inside stalk
             data[vi]=bnst_stalk
             changedany=true
             changedthis=true
-          --this else says to check for adding vines if we are 1 node outside stalk of vine  
           elseif dist<=(bnst[lv][b].vineradius+1) then --one node outside stalk
             checkvines(x,y,z, vinex[v],vinez[v], area,data)
             changedany=true
             changedthis=true
-          end  --if dist          
-          v=v+1 --next vine
+          end  --if dist
+          --check vine
+          v=v+1
         until v > bnst[lv][b].vtot-1 or changedthis==true
-        --I think this at one time added air around the stalk.  but its not doing ANYTHING
-        --now.  either need to add back data[vi]=c_air or get rid of this if entirely.
         if changedthis==false and (math.sqrt((x-cx)^2+(z-cz)^2) < bnst[lv][b].totradius) and (y > bnst[lv][b].pos.y+30) then
           changedany=true
         end --if changedthis=false
       end --for z
     end --for x
-    y=y+1 --next y
+    y=y+1
   until y>bnst[lv][b].maxp.y or y>y1
 
 
@@ -565,7 +550,7 @@ minetest.register_chatcommand("list_beanstalks", {
         --    " vineradius="..bnst[lv][b].vineradius)
         --minetest.log("   rot1min="..bnst[lv][b].rot1min.." rot1max="..bnst[lv][b].rot1max.." midrange="..midrange)
         --local xi=1
-        --repeat
+        --repeat        
         --  local rndval=bnst[lv][b].rot1min+(midrange+(midrange*bnst[lv][b].noise1[xi]))
         --  minetest.log("   noise1["..xi.."]="..bnst[lv][b].noise1[xi].."  rot1="..rndval)
         --  xi=xi+1
