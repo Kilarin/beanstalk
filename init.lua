@@ -166,10 +166,11 @@ for lv=0,bnst_level_max do  --loop through the levels
 
     --crazy2 like crazy1, but this is for the outer spiral
     bnst[lv][b].noise2=nil
-    bnst[lv][b].crazy2=math.random(1,18)-9
+    bnst[lv][b].crazy2=math.random(1,12)-6
     if bnst[lv][b].crazy2<0 then bnst[lv][b].crazy2=0 end
     if bnst[lv][b].crazy2>0 then
-      bnst[lv][b].crazy2=bnst[lv][b].crazy2+2
+      --small cazy values for crazy2 just don't have a big enough effect, so we multiply by 2
+      bnst[lv][b].crazy2=(bnst[lv][b].crazy2*2)+math.random(3,5) -- now we have 5 to 17
       --determine the min and max we will move the rot2radius through
       bnst[lv][b].rot2max=bnst[lv][b].rot2radius+bnst[lv][b].crazy2
       bnst[lv][b].rot2min=bnst[lv][b].rot2radius-bnst[lv][b].crazy2
