@@ -33,6 +33,26 @@ local np_crazy =
    octaves = 1,
    persist = 0.67
    }
+   
+
+local bnst={ }  
+
+--minetest.log("bnst: reading beanstalks"))
+--local file = io.open(minetest.get_worldpath().."/beanstalks", "r")
+--if file then
+--	bookmarks = minetest.deserialize(file:read("*all"))
+--  -- check if it was an empty file because empty files can crash server
+--	if bookmarks == nil then
+--	  print("compassgps:ERROR:bookmarks file exists but is empty, will recreate")
+--		print("compassgps: this will stop the server from crashing, but bookmarks are lost")
+--		print("compassgps: please restore "..minetest.get_worldpath().."/bookmarks from a backup if possible")
+--	  bookmarks = { }
+--	end
+--	file:close()
+--end
+
+   
+   
 
 --this function calculates (very approximately) the circumference of a circle of radius r in voxels
 --this could be made much more accurate
@@ -63,7 +83,6 @@ end --for
 --after that instead of recalculating.  That would allow the server admin to set
 --values as they wish.  (such as moving a beanstalk near spawn if they want)
 local logstr
-bnst={ }
 local lv=0
 bnst[lv]={ }  --this must be up here or scope will make it dissapear after the for loop
 local mg_params = minetest.get_mapgen_params()  --this is how we get the mapgen seed
@@ -186,9 +205,7 @@ for lv=0,bnst_level_max do  --loop through the levels
     bnst[lv][b].fullradius=bnst[lv][b].totradius+bnst[lv][b].rot2max
     bnst[lv][b].minp={x=bnst[lv][b].pos.x-bnst[lv][b].fullradius, y=bnst[lv][b].pos.y, z=bnst[lv][b].pos.z-bnst[lv][b].fullradius}
     bnst[lv][b].maxp={x=bnst[lv][b].pos.x+bnst[lv][b].fullradius, y=bnst_top[lv], z=bnst[lv][b].pos.z+bnst[lv][b].fullradius}
-
-    --minetest.log("bnst["..lv.."]["..b.."]: totradius="..bnst[lv][b].totradius.." fullradius="..bnst[lv][b].fullradius..
-    --    " minp="..minetest.pos_to_string(bnst[lv][b].minp).." maxp="..minetest.pos_to_string(bnst[lv][b].maxp))
+  
     --display it
     logstr="bnst["..lv.."]["..b.."] "..minetest.pos_to_string(bnst[lv][b].pos).." vtot="..bnst[lv][b].vtot
     logstr=logstr.." vrad="..bnst[lv][b].vineradius.." rotrad="..bnst[lv][b].rot1radius
@@ -278,8 +295,8 @@ minetest.register_node("beanstalk:leaf", {
 minetest.register_node("beanstalk:leaf_edge", {
 	description = "beanstalk:leaf edge",
   drawtype = "nodebox",
-  tiles = {"beanstalk-leaf-top-32.png","beanstalk-leaf-top-32.png","beanstalk-leaf-top-32.png",
-           "beanstalk-leaf-top-32.png","beanstalk-leaf-top-32.png","beanstalk-leaf-top-32.png"},
+  tiles = {"beanstalk-leaf-top.png","beanstalk-leaf-top.png","beanstalk-leaf-top.png",
+           "beanstalk-leaf-top.png","beanstalk-leaf-top.png","beanstalk-leaf-top.png"},
   paramtype = "light",
   paramtype2 = "facedir",
 	inventory_image = "beanstalk-leaf-edge.png",
@@ -409,6 +426,23 @@ local bnst_stalk=minetest.get_content_id("beanstalk:beanstalk")
 local bnst_vines=minetest.get_content_id("beanstalk:vine")
 local c_air = minetest.get_content_id("air")
 
+--this was used when I was attempting to debug the gap problem
+--function checkcontent(x,y,z, area,data, debugstr)
+--  local chkpos=area:index(x,y,z)
+--  local typestr="NOT STALK OR VINE"
+--  local outstr="bnstcc : "..debugstr.." : pos=("..x..","..y..","..z..")= "
+--  if data[chkpos]==bnst_stalk then outstr=outstr.."bnst_stalk"
+--  elseif data[chkpos]==bnst_vines then outstr=outstr.."bnst_vines"
+--  elseif data[chkpos]==c_air then outstr=outstr.."c_air"
+--  else outstr=outstr.."UNKNOWN"
+--  end  --if
+--  
+--  local pos2={x=x,y=y,z=z}
+--  local node2=minetest.get_node(pos2)
+--  outstr=outstr.."  get_node.name="..node2.name
+--  return outstr
+--end --checkcontent
+
 
 --this function checks to see if a node should have vines.
 --parms: x,y,z pos of this node, vcx vcz center of this vine, also pass area and data so we can check below
@@ -419,7 +453,7 @@ function checkvines(x,y,z, vcx,vcz, area,data)
   --if vn is not beanstalk or vines, and vndown is not beanstalk, then we will place a vine
   if data[vn]~=bnst_stalk and data[vn]~=bnst_vines and data[vndown]~=bnst_stalk then
     data[vn]=bnst_vines
-    local changed=true
+    changed=true
     local pos={x=x,y=y,z=z}
     local node=minetest.get_node(pos)
     --we have the vine in place, but we need to rotate it with the vines
@@ -492,7 +526,8 @@ function beanstalk(minp, maxp, seed)
   local ymin=minp.y
   local z0 = minp.z
 
-  minetest.log("bnst [beanstalk_gen] chunk minp ("..x0.." "..y0.." "..z0..") maxp ("..x1.." "..y1.." "..z1..")") --tell people you are generating a chunk
+  --minetest.log("bnst [beanstalk_gen] BEGIN chunk minp ("..x0..","..y0..","..z0..") maxp ("..x1..","..y1..","..z1..")") --tell people you are generating a chunk
+
 
   --This actually initializes the LVM
   local vm, emin, emax = minetest.get_mapgen_object("voxelmanip")
@@ -582,12 +617,11 @@ function beanstalk(minp, maxp, seed)
       vinez[v]=cz+rot1radius*math.sin(a1*math.pi/180)
       vstr="vinex["..v.."]="..vinex[v].." vinez["..v.."]="..vinez[v] --debug only
     end --for v
-    minetest.log("--- cx="..cx.." cz="..cz.." "..vstr)
+    --minetest.log("--- cx="..cx.." cz="..cz.." "..vstr)
 
     --we are inside the repeat loop that loops through the chunc based on y (from bottom up)
     --these two for loops loop through the chunk based x and z
     --changedthis says if there was a change in the z loop.  changedany says if there was a change in the whole chunk
-    local changedthisy=false
     for x=x0, x1 do
       for z=z0, z1 do
         local vi = area:index(x, y, z) -- This accesses the node at a given position
@@ -599,29 +633,30 @@ function beanstalk(minp, maxp, seed)
             data[vi]=bnst_stalk
             changedany=true
             changedthis=true
-            changedthisy=true
-            minetest.log("--- -- stalk placed at x="..x.." y="..y.." z="..z.." (v="..v..")")
+            --minetest.log("--- -- stalk placed at x="..x.." y="..y.." z="..z.." (v="..v..")")
           --this else says to check for adding vines if we are 1 node outside stalk of vine
           elseif dist<=(bnst[lv][b].vineradius+1) then --one node outside stalk
             if checkvines(x,y,z, vinex[v],vinez[v], area,data)==true then
               changedany=true
               changedthis=true
-              changedthisy=true
-              minetest.log("--- -- vine placed at x="..x.." y="..y.." z="..z.."(v="..v..")")
+              --minetest.log("--- -- vine placed at x="..x.." y="..y.." z="..z.."(v="..v..")")
             end --changed vines  
           end  --if dist
           v=v+1 --next vine
         until v > bnst[lv][b].vtot-1 or changedthis==true
-        --I think this at one time added air around the stalk.  but its not doing ANYTHING
-        --now.  either need to add back data[vi]=c_air or get rid of this if entirely.
+        --add air around the stalk.  (so if we drill through a floating island or another level of land, the beanstalk will have room to climb)
+        --not doing this right now, may change my mind later
         --if changedthis==false and (math.sqrt((x-cx)^2+(z-cz)^2) < bnst[lv][b].totradius) and (y > bnst[lv][b].pos.y+30) then
+        --  data[v]=c_air
         --  changedany=true
         --end --if changedthis=false
       end --for z
     end --for x
-    if changedthisy then minetest.log("bnst: repeat bottom y="..y.." changedthisy=true")
-    else minetest.log("--- repeat bottom y="..y.." changedthisy=FALSE")
-    end
+    --minetest.log("bnst: repeat bottom y="..y)
+    --minetest.log("bnstb : x0="..x0.." z0="..z0)
+    --minetest.log(checkcontent(8573,47,8136,area,data," y="..y))
+    --minetest.log(checkcontent(8573,46,8136,area,data," y="..y))        
+    
     y=y+1 --next y
   until y>bnst[lv][b].maxp.y or y>y1
 
@@ -629,6 +664,7 @@ function beanstalk(minp, maxp, seed)
   if changedany==true then
     -- Wrap things up and write back to map
     --send data back to voxelmanip
+    --minetest.log(checkcontent(8573,47,8136,area,data," before save chunk "..x0..","..y0..","..z0))    
     vm:set_data(data)
     --calc lighting
     vm:set_lighting({day=0, night=0})
@@ -636,10 +672,11 @@ function beanstalk(minp, maxp, seed)
     --write it to world
     vm:write_to_map(data)
     --minetest.log(">>>saved")
+    --minetest.log(checkcontent(8573,47,8136,area,data," after save chunk "..x0..","..y0..","..z0))    
   end --if changed write to map
 
   local chugent = math.ceil((os.clock() - t1) * 1000) --grab how long it took
-  minetest.log("bnst[lv]["..b.."] [beanstalk_gen] "..chugent.." ms") --tell people how long
+  minetest.log("bnst["..lv.."]["..b.."] END chunk="..x0..","..y0..","..z0.." - "..x1..","..y1..","..z1.." [beanstalk_gen] "..chugent.." ms") --tell people how long
 end -- beanstalk
 
 
@@ -744,4 +781,4 @@ minetest.register_chatcommand("list_beanstalks", {
         --  local rndval=bnst[lv][b].rot1min+(midrange+(midrange*bnst[lv][b].noise1[xi]))
         --  minetest.log("   noise1["..xi.."]="..bnst[lv][b].noise1[xi].."  rot1="..rndval)
         --  xi=xi+1
-        --until bnst[lv][b].noise1[xi]==nil
+--until bnst[lv][b].noise1[xi]==nil
