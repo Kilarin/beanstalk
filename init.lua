@@ -177,7 +177,7 @@ function beanstalk.create_beanstalks()
 
       --this defines the variable, I THINK I've finally got this part formatted correctly, mostly anyway.
       bnst[lv][b]={["pos"]={["x"]=0,["y"]=0,["z"]=0},["rot1radius"]=0,["rot1dir"]=0,["vineradius"]=0,["vtot"]=0,
-                   ["yper360"]=0,["rot2radius"]=0,["rot2yper360"]=0,["rot2dir"]=0,["totradius"]=0,["fullradius"]=0,
+                   ["rot1yper360"]=0,["rot2radius"]=0,["rot2yper360"]=0,["rot2dir"]=0,["totradius"]=0,["fullradius"]=0,
                    ["minp"]=0,["maxp"]=0,["desc"]=0,["seed"]=0,["crazy1"]=0,["crazy2"]=0,["rot1min"]=0,["rot1max"]=0,
                    ["rot2min"]=0,["rot2max"]=0,["noise1"]=0,["noise2"]=0}
 
