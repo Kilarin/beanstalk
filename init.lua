@@ -1,13 +1,17 @@
 --beanstalk
 
 beanstalk = { } --will be used to hold functions.
+--putting the functions into a lua table like this is, I believe, generally considered good form
+--because it makes it easy for any other mod to access them if needed
 
+--this runs nodes.lua, I put all the node definitions in there in instead of in init.lua
+--it helps to keep the code cleaner and more organized.  I run nodes.lua near the top of init.lua
+--because we use those node definitions in some of the code below
 dofile(minetest.get_modpath("beanstalk").."/nodes.lua")
 
 --These are the constants that need to be modified based on your game needs
 --we store all the important variables in a single table, bnst, this makes it easy to
 --write to a file and read from a file
-
 local bnst={["level_max"]=0}   --(counting up from 0, what is the highest "level" of beanstalks?)
 
 --define by level  (each beanstalk level must have these values defined.  might add "weirdness" and specialized nodes?)
@@ -15,7 +19,8 @@ bnst[0]={"count","bot","height","per_row","area","top","max" }
 bnst[0].count=16
 bnst[0].bot=-10
 bnst[0].height=6000
---once you create a beanstalk file, these values will be ignored!  that seems problematic!
+--once you create a beanstalk file, these values will be ignored! They only make a difference the FIRST time this
+--code runs when the first beanstalk file is created.  I might need to change that in the future
 
 
 --this is the perlin noise that will be used for "crazy" beanstalks
@@ -25,21 +30,28 @@ local np_crazy =
   {
    offset = 0,
    scale = 1,
-   --spread = {x=192, y=512, z=512}, -- squashed 2:1
-   --spread = {x=200, y=80, z=80},
-	spread = {x=15, y=8, z=8},
+   spread = {x=15, y=8, z=8},  
    seed = 0, --this will be overriden
    octaves = 1,
    persist = 0.67
    }
+--since I'm using this perlin noise one dimensionally, I would have assumed a spread of
+--{x=15, y=1, z=1} would have been right, but that reduces the variation too much.
+--I really do NOT understand perlin noise well enough.   
+
 
 -- ----- below here you shouldnt need to customize -----
 
+--grab content IDs -- You need these to efficiently access and set node data.  get_node() works, but is far slower
+local bnst_stalk=minetest.get_content_id("beanstalk:beanstalk")
+local bnst_vines=minetest.get_content_id("beanstalk:vine")
+local c_air = minetest.get_content_id("air")
 
 
 --this function calculates (very approximately) the circumference of a circle of radius r in voxels
 --this could be made much more accurate
 --this function has to be way up here because it has to be defined before it is used
+--********************************
 function beanstalk.voxel_circum(r)
   if r==1 then return 4
   elseif r==2 then return 8
@@ -47,9 +59,17 @@ function beanstalk.voxel_circum(r)
   end --if
 end --voxel_circum
 
-
---this runs BEFORE create_beanstalks_rnd (but after read from file)
-function beanstalk.calculated_constants_1()
+--this function generates the calculated constants that apply to each beanstalk level.
+--we do not store these values in the beanstalk file because if the user changes any of the
+--basic values (such as count) in the beanstalk file, we want all of THESE values to be recalculated
+--correctly after the beanstalk file is read.
+--this function is run TWICE in create_beanstalks.  That is because it has to be run
+--BEFORE create_beanstalks, in order to set up the constants used in that function.  But 
+--create_beanstalks also runs write_beanstalks, which wipes these values out (because we dont want to write
+--them to the beanstalk file) so it is run again after the call to write_beanstalks to reset the values again
+--when reading from the beanstalk file this function only runs once
+--********************************
+function beanstalk.calculated_constants_bylevel()
   --calculated constants by level
   minetest.log("beanstalk-> calculated constants by level")
   for lv=0,bnst.level_max do
@@ -59,11 +79,16 @@ function beanstalk.calculated_constants_1()
     bnst[lv].area=62000/bnst[lv].per_row
     bnst[lv].top=bnst[lv].bot+bnst[lv].height-1
   end --for
-end --calculated_constants_1
+end --calculated_constants_bylevel
 
 
---this runs AFTER create_beanstalks_rnd
-function beanstalk.calculated_constants_2()
+--this function generates the calculated constants that apply to each beanstalk.  We dont
+--store these in the beanstalk file because if the user changes any of those values in the file
+--(such as the beanstalk position) we need these constants to be recalculated correctly 
+--this function has to run after you create_beanstalks or read_beanstalks
+--this function displays the beanstalk list in debug.txt
+--********************************
+function beanstalk.calculated_constants_bybnst()
   --calculated constants by beanstalk
   minetest.log("beanstalk-> calculated constants by beanstalk")
   minetest.log("beanstalk-> list --------------------------------------")
@@ -72,21 +97,24 @@ function beanstalk.calculated_constants_2()
     for b=0,bnst[lv].max do   --loop through the beanstalks
       bnst[lv][b].rot1min=bnst[lv][b].rot1radius --default if we dont set crazy
       bnst[lv][b].rot1max=bnst[lv][b].rot1radius --default if we dont set crazy
-      bnst[lv][b].rot2min=bnst[lv][b].rot2radius --default if we dont set crazy *!*
-      bnst[lv][b].rot2max=bnst[lv][b].rot2radius --default if we dont set crazy *!*
+      bnst[lv][b].rot2min=bnst[lv][b].rot2radius --default if we dont set crazy 
+      bnst[lv][b].rot2max=bnst[lv][b].rot2radius --default if we dont set crazy 
+      
       if bnst[lv][b].crazy1>0 then
         --determine the min and max we will move the rot1radius through
         bnst[lv][b].rot1max=bnst[lv][b].rot1radius+bnst[lv][b].crazy1
         bnst[lv][b].rot1min=bnst[lv][b].rot1radius-bnst[lv][b].crazy1
         if bnst[lv][b].rot1min<bnst[lv][b].vineradius then --we dont want min to be too small
-          bnst[lv][b].rot1max=bnst[lv][b].rot1max+(bnst[lv][b].vineradius-bnst[lv][b].rot1min) --add what we take off the min to the max
+          --below line says add what we take off the min to the max
+          bnst[lv][b].rot1max=bnst[lv][b].rot1max+(bnst[lv][b].vineradius-bnst[lv][b].rot1min) 
           bnst[lv][b].rot1min=bnst[lv][b].vineradius
         end --if rot1min<vineradius
       end --if crazy1>0
-
+      bnst[lv][b].noise1=nil
       --now, right here would be a GREAT place to create and store the perlin noise.
-      --BUT, you can do that at this point, because the map isn't generated.  and for some odd reason, the perlin noise function
-      --exits as nil if you use it before map generation.  so we will do it in the generation loop
+      --BUT, you cant do that at this point, because the map isn't generated.  and for some odd reason,
+      --the perlin noise function exits as nil if you use it before map generation.  so we will do it
+      --in the generation loop
       --perlin noise is random, but SMOOTH, so it makes interesting looking vine changes.
       --we need to play with the perlin noise values and see if we can get results we like better
 
@@ -95,10 +123,12 @@ function beanstalk.calculated_constants_2()
         bnst[lv][b].rot2max=bnst[lv][b].rot2radius+bnst[lv][b].crazy2
         bnst[lv][b].rot2min=bnst[lv][b].rot2radius-bnst[lv][b].crazy2
         if bnst[lv][b].rot2min<0 then --we dont want min to be too small
-          bnst[lv][b].rot2max=bnst[lv][b].rot2max+math.abs(bnst[lv][b].rot2min) --add what we take off the min to the max
+          --below line says add what we take off the min to the max
+          bnst[lv][b].rot2max=bnst[lv][b].rot2max+math.abs(bnst[lv][b].rot2min) 
           bnst[lv][b].rot2min=0
         end --if rot2min<0
       end --if crazy2>0
+      bnst[lv][b].noise2=nil
 
       -- total radius = rot1radius (radius vines circle around) + vine radius + 2 more for a space around the beanstalk (will be air)
       -- so this is the total radius around the current center
@@ -110,24 +140,30 @@ function beanstalk.calculated_constants_2()
       bnst[lv][b].maxp={x=bnst[lv][b].pos.x+bnst[lv][b].fullradius, y=bnst[lv].top, z=bnst[lv][b].pos.z+bnst[lv][b].fullradius}
 
       --display it
-      logstr="bnst["..lv.."]["..b.."] "..minetest.pos_to_string(bnst[lv][b].pos).." vtot="..bnst[lv][b].vtot
-      logstr=logstr.." vrad="..bnst[lv][b].vineradius.." rotrad="..bnst[lv][b].rot1radius
-      logstr=logstr.." dir="..bnst[lv][b].rot1dir.." yper="..bnst[lv][b].rot1yper360
-      logstr=logstr.." rot2rad="..bnst[lv][b].rot2radius.." rot2yper="..bnst[lv][b].rot2yper360.." rot2dir="..bnst[lv][b].rot2dir
+      local logstr="bnst["..lv.."]["..b.."] "..minetest.pos_to_string(bnst[lv][b].pos).." vtot="..bnst[lv][b].vtot
+      logstr=logstr.." vrad="..bnst[lv][b].vineradius.." rot1rad="..bnst[lv][b].rot1radius
+      logstr=logstr.." 1dir="..bnst[lv][b].rot1dir.." 1yper="..bnst[lv][b].rot1yper360
+      logstr=logstr.." rot2rad="..bnst[lv][b].rot2radius.." 2yper="..bnst[lv][b].rot2yper360.." 2dir="..bnst[lv][b].rot2dir
       logstr=logstr.." crazy1="..bnst[lv][b].crazy1.." crazy2="..bnst[lv][b].crazy2
       bnst[lv][b].desc=logstr
       minetest.log(logstr)
     end --for b
   end --for lv
   minetest.log("beanstalk-> list --------------------------------------")
-end --calculated_constants_2
+end --calculated_constants_bybnst
 
 
 --saves the bnst list in minetest/words/<worldname>/beanstalks
+--we could just recalculate the beanstalks from scratch each time, but writing them to a file
+--gives the server admin the option of moving a beanstalk closer to spawn or further away 
+--or letting them play with the numbers if they want.  It also means that updates that
+--change the way beanstalks are generated should not cause an existing games beanstalks
+--to change positions or anything else disruptive like that.
+--********************************
 function beanstalk.write_beanstalks()
   minetest.log("beanstalk-> write_beanstalks")
-	local file = io.open(minetest.get_worldpath().."/beanstalks", "w")
-	if file then
+  local file = io.open(minetest.get_worldpath().."/beanstalks", "w")
+  if file then
     --wipe out variables that we will recalculate
     for lv=0,bnst.level_max do  --loop through the levels
       bnst[lv].per_row=nil
@@ -146,29 +182,25 @@ function beanstalk.write_beanstalks()
       end --for b
       bnst[lv].max=nil
     end --for lv
-
-		file:write(minetest.serialize(bnst))
-		file:close()
-	end
+    file:write(minetest.serialize(bnst))
+    file:close()
+  end
 end --write_beanstalks
 
 
 
--- document
+--this is the function that randomly generates the beanstalks based on the map seed, level,
+--and beanstalk.  It should usually only run once per game
+--then the results are written to the beanstalk file.  But if you deleted the beanstalk
+--file so this would run again, you should get identical results. 
+--********************************
 function beanstalk.create_beanstalks()
   minetest.log("beanstalk-> create beanstalks")
-
-  --here we calculate the beanstalks based on the map seed, level, and beanstalk.
-  --so this should be consistent for any game with the same seed.
-  --this will run once every time minetest loads the game.
-  --however, we should probably eventually write these to a file once and read it
-  --after that instead of recalculating.  That would allow the server admin to set
-  --values as they wish.  (such as moving a beanstalk near spawn if they want)
   local logstr
   local lv=0
 
   --we need these values calculated before we do some of the things below:
-  beanstalk.calculated_constants_1()
+  beanstalk.calculated_constants_bylevel()
 
   --get_mapgen_params is deprecated; use get_mapgen_setting
   --local mg_params = minetest.get_mapgent_setting()
@@ -177,29 +209,25 @@ function beanstalk.create_beanstalks()
   for lv=0,bnst.level_max do  --loop through the levels
     for b=0,bnst[lv].max do   --loop through the beanstalks
 
-      --this defines the variable, I THINK I've finally got this part formatted correctly, mostly anyway.
-      --bnst[lv][b]={["pos"]={["x"]=0,["y"]=0,["z"]=0},["rot1radius"]=0,["rot1dir"]=0,["vineradius"]=0,["vtot"]=0,
-      --             ["rot1yper360"]=0,["rot2radius"]=0,["rot2yper360"]=0,["rot2dir"]=0,["totradius"]=0,["fullradius"]=0,
-      --             ["minp"]=0,["maxp"]=0,["desc"]=0,["seed"]=0,["crazy1"]=0,["crazy2"]=0,["rot1min"]=0,["rot1max"]=0,
-      --             ["rot2min"]=0,["rot2max"]=0,["noise1"]=0,["noise2"]=0}
       bnst[lv][b]={ }
 
-      --the seed looses digits near the end, probably I'm not storing it in the right kind of number var?
+      --the seed looses digits near the end, probably I'm not storing it in the right kind of number variable?
       --anyway, unless we multiply the lv and b up high like this, adding them to the seed makes no difference
+      --adding lv and b to the seed makes each beanstalk have its own unique seed so they will all be different.
       bnst[lv][b].seed=mg_params.seed+lv*10000000+b*100000
       math.randomseed(bnst[lv][b].seed)
+      --important note: since we have seeded the random function with our beanstalks seed here,
+      --all of the random numbers it generates will be the exact SAME numbers if this function is run again.
 
       --note that our random position is always at least 500 from the border, so that beanstalks can NEVER be right next to each other
       bnst[lv][b].pos={ }
       bnst[lv][b].pos.x=-31000 + (bnst[lv].area * (b % bnst[lv].per_row) + 500+math.random(0,bnst[lv].area-1000) )
-      --minetest.log("bnstx 2: lv="..lv.." bnst[lv].bot="..bnst[lv].bot)
       bnst[lv][b].pos.y=bnst[lv].bot
-      --minetest.log("bnstx 3: b="..b.." bnst[lv][b].pos.y="..bnst[lv][b].pos.y)
       bnst[lv][b].pos.z=-31000 + (bnst[lv].area * (math.floor(b/bnst[lv].per_row) % bnst[lv].per_row) + 500 + math.random(0,bnst[lv].area-1000) )
 
       --total number of vines
-      if math.random(1,4)<4 then bnst[lv][b].vtot=3
-      else bnst[lv][b].vtot=math.random(2,5)
+      if math.random(1,4)<4 then bnst[lv][b].vtot=3  
+      else bnst[lv][b].vtot=math.random(2,5)  
       end
 
       --direction of rotation of the inner spiral
@@ -217,7 +245,8 @@ function beanstalk.create_beanstalks()
       else bnst[lv][b].rot1radius=math.random(3,10)
       end
       --vines merge too much if the rotation radius isn't at least vineradius
-      if bnst[lv][b].rot1radius<bnst[lv][b].vineradius then bnst[lv][b].rot1radius=bnst[lv][b].vineradius
+      --and vine radius +1 looks better in my opinion
+      if bnst[lv][b].rot1radius<bnst[lv][b].vineradius then bnst[lv][b].rot1radius=bnst[lv][b].vineradius+1
       end
 
       --y units per one 360 degree rotation of a vine
@@ -243,13 +272,12 @@ function beanstalk.create_beanstalks()
       end
 
       --crazy1
-      --crazy gives us a number from 0 to 6 (may expand that in the future)
-      --the biger the number, the bigger the range of change in the crazy vine
+      --crazy gives us a number from 0 to 6 (may expand that in the future, and we manipulate it below)
+      --the biger the number, the bigger the range of change in the crazy vine rot1radius value
       --note that this is the number we change each way, so crazy=3 means from radius-3 to radius+3
       --and crazy=6 is a whopping TWELVE change in radius, that should be VERY noticible
-      --once we have the crazy value, we establish the rot1min and max
-      bnst[lv][b].noise1=nil
-      bnst[lv][b].crazy1=math.random(1,12)-6
+      --in calculated_constants_bybnst we use crazy1 to set rot1min and rot1max
+       bnst[lv][b].crazy1=math.random(1,12)-6
       if bnst[lv][b].crazy1<0 then bnst[lv][b].crazy1=0 end
       if bnst[lv][b].crazy1>0 then
         --very low values for crazy are just not visible enough of an effect, so we increase so min is 3
@@ -257,7 +285,7 @@ function beanstalk.create_beanstalks()
       end --if crazy1>0
 
       --crazy2 like crazy1, but this is for the outer spiral
-      bnst[lv][b].noise2=nil
+      --in calculated_constants_bybnst we use crazy2 to set rot2min and rot2max      
       bnst[lv][b].crazy2=math.random(1,12)-6
       if bnst[lv][b].crazy2<0 then bnst[lv][b].crazy2=0 end
       if bnst[lv][b].crazy2>0 then
@@ -268,46 +296,47 @@ function beanstalk.create_beanstalks()
   end --for lv
 
   --now that we have created all the values, we need to write them to the file.
+  --in the future, create_beanstalks will not be run again, instead, values will be read from the beanstalk file.
   beanstalk.write_beanstalks()
-  --but that wiped out some of our calculated constants 1, so lets redo them
-  beanstalk.calculated_constants_1()
+  --but that wiped out some of our calculated constants bylevel, so lets redo them
+  beanstalk.calculated_constants_bylevel()
   --and also get the beanstalk level calculated constants
-  beanstalk.calculated_constants_2()
+  beanstalk.calculated_constants_bybnst()
 end --create_beanstalks
 
 
 
-
 --get beanstalks, from file if exists, otherwise generate
+--********************************
 function beanstalk.read_beanstalks()
   minetest.log("beanstalk-> reading beanstalks file")
   local file = io.open(minetest.get_worldpath().."/beanstalks", "r")
   if file then
-  	bnst = minetest.deserialize(file:read("*all"))
+    bnst = minetest.deserialize(file:read("*all"))
     -- check if it was an empty file because empty files can crash server
-  	if bnst == nil then
-  	  print("beanstalk: ERROR: beanstalk file exists but is empty, will recreate")
-  	  beanstalk.create_beanstalks()
+    if bnst == nil then
+      minetest.log("beanstalk-> ERROR: beanstalk file exists but is empty, will recreate")
+      beanstalk.create_beanstalks()
     else  --file exists and was loaded
-      beanstalk.calculated_constants_1()
-      beanstalk.calculated_constants_2()
-  	end  --if bnst==nil
-  	file:close()
+      beanstalk.calculated_constants_bylevel()
+      beanstalk.calculated_constants_bybnst()
+    end  --if bnst==nil
+    file:close()
   else --file does not exist
+    minetest.log("beanstalk-> beanstalk file does not exist, creating it")
     beanstalk.create_beanstalks()
   end --if file
 end --read_beanstalks
 
 
---grab content IDs -- You need these to efficiently access and set node data.  get_node() works, but is far slower
-local bnst_stalk=minetest.get_content_id("beanstalk:beanstalk")
-local bnst_vines=minetest.get_content_id("beanstalk:vine")
-local c_air = minetest.get_content_id("air")
 
-
-
---this function checks to see if a node should have vines.
+--this function checks to see if a node should have vines.  it is only called for positions
+--that are vine radius +1.  The rules for adding a vine are pretty simple:
+--if this location is not itself a vine or beanstalk, AND, the position directly below
+--this position IS a beanstalk, then we add a vine.  That way vines appear on vertical
+--surfaces, but not where you have nice climbable stair steps.
 --parms: x,y,z pos of this node, vcx vcz center of this vine, also pass area and data so we can check below
+--********************************
 function beanstalk.checkvines(x,y,z, vcx,vcz, area,data)
   local changed=false
   local vn = area:index(x, y, z)  --we get the node we are checking
@@ -344,6 +373,7 @@ end --checkvines
 --see at the bottom of this program where it is registered with:
 --minetest.register_on_generated(gen_beanstalk)
 --minp is the min point of the chunk, maxp is the max point of the chunk
+--********************************
 function beanstalk.gen_beanstalk(minp, maxp, seed)
   --we dont want to waste any time in this function if the chunk doesnt have
   --a beanstalk in it.
@@ -454,20 +484,19 @@ function beanstalk.gen_beanstalk(minp, maxp, seed)
       rot2radius=math.floor(bnst[lv][b].rot2min+(midrange+(midrange*bnst[lv][b].noise2[ylvl])))
      end --if crazy2>0
 
-     --now, if we had "crazy" we set local rot1radius and rot2radius above.  if we didnt
-     --the same locals were set to the beanstalk values.  we use the local values below
+    --now, if we had "crazy" we set local rot1radius and rot2radius above.  if we didnt
+    --the same locals were set to the beanstalk values.  we use the local values below
 
-    --lets get the beanstalk center based on 2ndary spiral
+    --lets get the beanstalk center based on secondary spiral
     a2=(360/bnst[lv][b].rot2yper360)*(y % bnst[lv][b].rot2yper360)*bnst[lv][b].rot2dir
     cx=bnst[lv][b].pos.x+rot2radius*math.cos(a2*math.pi/180)
     cz=bnst[lv][b].pos.z+rot2radius*math.sin(a2*math.pi/180)
     --now cx and cz are the new center of the beanstalk
 
-    local vstr="" --for debuging purposes only
     for v=0, bnst[lv][b].vtot-1 do --calculate centers for each vine
       -- an attempt to explain this rather complicated looking formula:
       -- (360/bnst[lv][b].vtot)*v       gives me starting angle for this vine
-      -- +(360/bnst[lv][b].rot1yper360) add the change in angle for each y up
+      -- +(360/bnst[lv][b].rot1yper360) the change in angle for each y up
       --   (y-bnst[lv][b].pos.y)        the y pos in this beanstalk
       --                         % bnst[lv][b].rot1yper360)  get mod of yper360, together this gives us how many y up we are (for this section)
       -- *((y-bnst[lv][b].pos.y) % bnst[lv][b].rot1yper360)  multiply change in angle for each y, by how many y up we are in this section
@@ -476,9 +505,7 @@ function beanstalk.gen_beanstalk(minp, maxp, seed)
       --now that we have the rot2 center cx,cz, and the offset angle, we can calculate the center of this vine
       vinex[v]=cx+rot1radius*math.cos(a1*math.pi/180)
       vinez[v]=cz+rot1radius*math.sin(a1*math.pi/180)
-      vstr="vinex["..v.."]="..vinex[v].." vinez["..v.."]="..vinez[v] --debug only
     end --for v
-    --minetest.log("--- cx="..cx.." cz="..cz.." "..vstr)
 
     --we are inside the repeat loop that loops through the chunc based on y (from bottom up)
     --these two for loops loop through the chunk based x and z
@@ -495,7 +522,8 @@ function beanstalk.gen_beanstalk(minp, maxp, seed)
             changedany=true
             changedthis=true
             --minetest.log("--- -- stalk placed at x="..x.." y="..y.." z="..z.." (v="..v..")")
-          --this else says to check for adding vines if we are 1 node outside stalk of vine
+          --this else says to check for adding climbing vines if we are 1 node outside stalk of a beanstalk vine
+          --(it is confusing that I call them both vine.  I should have called it stalks and vines)
           elseif dist<=(bnst[lv][b].vineradius+1) then --one node outside stalk
             if beanstalk.checkvines(x,y,z, vinex[v],vinez[v], area,data)==true then
               changedany=true
@@ -541,8 +569,9 @@ function beanstalk.gen_beanstalk(minp, maxp, seed)
 end -- beanstalk
 
 
---list_beanstalks and go_beanstalk are mainly here for testing
---neither one will probably stay once this is complete
+--list_beanstalks is mainly here for testing.  It may be removed (or at least restricted)
+--once this mod is complete
+--********************************
 function beanstalk.list_beanstalks(playername)
   local player = minetest.get_player_by_name(playername)
   local lv=0
@@ -555,6 +584,10 @@ function beanstalk.list_beanstalks(playername)
   end --for lv
 end --list_beanstalks
 
+
+--teleports you to a specific beanstalk, this is mainly here for testing
+--and will probably be removed (or at least restricted) once this mod is complete
+--********************************
 function beanstalk.go_beanstalk(playername,param)
   local player = minetest.get_player_by_name(playername)
   if param=="" then minetest.chat_send_player(playername,"format is go_beanstalk <lv>,<b>")
@@ -572,19 +605,24 @@ function beanstalk.go_beanstalk(playername,param)
   end --if
 end --go_beanstalk
 
-minetest.register_chatcommand("go_beanstalk", {
-  params = "<lv> <b>",
-  description = "go_beanstalk <lv>,<b>: teleport to beanstalk location",
-  func = function (name,param)
-    beanstalk.go_beanstalk(name,param)
-  end,
-})
 
+--note that the below stuff is NOT in a function and will run at the start of every game
+
+--register the list_beanstalk chat command 
 minetest.register_chatcommand("list_beanstalks", {
   params = "",
   description = "list_beanstalks: list the beanstalk locations",
   func = function (name, param)
     beanstalk.list_beanstalks(name)
+  end,
+})
+
+--register the go_beanstalk chat command
+minetest.register_chatcommand("go_beanstalk", {
+  params = "<lv> <b>",
+  description = "go_beanstalk <lv>,<b>: teleport to beanstalk location",
+  func = function (name,param)
+    beanstalk.go_beanstalk(name,param)
   end,
 })
 
