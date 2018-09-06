@@ -48,6 +48,13 @@ local bnst_vines=minetest.get_content_id("beanstalk:vine")
 local c_air = minetest.get_content_id("air")
 
 
+--to avoid confusion
+--beanstalk=the whole beanstalk plant
+--stalk = the node placed to create the beanstalk stems
+--stem = a beanstalk consist of multiple stems that wind around each other
+--vine = the little vines on the side of the stem that make the beanstalk climbable when vertical
+
+
 --this function calculates (very approximately) the circumference of a circle of radius r in voxels
 --this could be made much more accurate
 --this function has to be way up here because it has to be defined before it is used
@@ -58,6 +65,7 @@ function beanstalk.voxel_circum(r)
   else return 2*math.pi*r*0.88 --not perfect, but a pretty good estimate
   end --if
 end --voxel_circum
+
 
 --this function generates the calculated constants that apply to each beanstalk level.
 --we do not store these values in the beanstalk file because if the user changes any of the
@@ -75,6 +83,7 @@ function beanstalk.calculated_constants_bylevel()
   for lv=0,bnst.level_max do
     bnst[lv].per_row=math.floor(math.sqrt(bnst[lv].count))  --beanstalks per row are the sqrt of beanstalks per level
     bnst[lv].count=bnst[lv].per_row*bnst[lv].per_row  --recalculate to a perfect square
+    --so yes, the count you set can be changed
     bnst[lv].max=bnst[lv].count-1  --for use in array
     bnst[lv].area=62000/bnst[lv].per_row
     bnst[lv].top=bnst[lv].bot+bnst[lv].height-1
@@ -104,18 +113,18 @@ function beanstalk.calculated_constants_bybnst()
         --determine the min and max we will move the rot1radius through
         bnst[lv][b].rot1max=bnst[lv][b].rot1radius+bnst[lv][b].crazy1
         bnst[lv][b].rot1min=bnst[lv][b].rot1radius-bnst[lv][b].crazy1
-        if bnst[lv][b].rot1min<bnst[lv][b].vineradius then --we dont want min to be too small
+        if bnst[lv][b].rot1min<bnst[lv][b].stemradius then --we dont want min to be too small
           --below line says add what we take off the min to the max
-          bnst[lv][b].rot1max=bnst[lv][b].rot1max+(bnst[lv][b].vineradius-bnst[lv][b].rot1min)
-          bnst[lv][b].rot1min=bnst[lv][b].vineradius
-        end --if rot1min<vineradius
+          bnst[lv][b].rot1max=bnst[lv][b].rot1max+(bnst[lv][b].stemradius-bnst[lv][b].rot1min)
+          bnst[lv][b].rot1min=bnst[lv][b].stemradius
+        end --if rot1min<stemradius
       end --if crazy1>0
       bnst[lv][b].noise1=nil
       --now, right here would be a GREAT place to create and store the perlin noise.
       --BUT, you cant do that at this point, because the map isn't generated.  and for some odd reason,
       --the perlin noise function exits as nil if you use it before map generation.  so we will do it
       --in the generation loop
-      --perlin noise is random, but SMOOTH, so it makes interesting looking vine changes.
+      --perlin noise is random, but SMOOTH, so it makes interesting looking changes.
       --we need to play with the perlin noise values and see if we can get results we like better
 
       if bnst[lv][b].crazy2>0 then
@@ -130,9 +139,9 @@ function beanstalk.calculated_constants_bybnst()
       end --if crazy2>0
       bnst[lv][b].noise2=nil
 
-      -- total radius = rot1radius (radius vines circle around) + vine radius + 2 more for a space around the beanstalk (will be air)
+      -- total radius = rot1radius (radius stems circle around) + stem radius + 2 more for a space around the beanstalk (will be air)
       -- so this is the total radius around the current center
-      bnst[lv][b].totradius=bnst[lv][b].rot1max+bnst[lv][b].vineradius+2
+      bnst[lv][b].totradius=bnst[lv][b].rot1max+bnst[lv][b].stemradius+2
       -- but totradius can not be used for determining min and maxp, because the current center moves! for that we need
       -- full radius = max diameter of entire beanstalk including outer spiral (rot2radius)
       bnst[lv][b].fullradius=bnst[lv][b].totradius+bnst[lv][b].rot2max
@@ -140,8 +149,8 @@ function beanstalk.calculated_constants_bybnst()
       bnst[lv][b].maxp={x=bnst[lv][b].pos.x+bnst[lv][b].fullradius, y=bnst[lv].top, z=bnst[lv][b].pos.z+bnst[lv][b].fullradius}
 
       --display it
-      local logstr="bnst["..lv.."]["..b.."] "..minetest.pos_to_string(bnst[lv][b].pos).." vtot="..bnst[lv][b].vtot
-      logstr=logstr.." vrad="..bnst[lv][b].vineradius.." rot1rad="..bnst[lv][b].rot1radius
+      local logstr="bnst["..lv.."]["..b.."] "..minetest.pos_to_string(bnst[lv][b].pos).." stemtot="..bnst[lv][b].stemtot
+      logstr=logstr.." stemrad="..bnst[lv][b].stemradius.." rot1rad="..bnst[lv][b].rot1radius
       logstr=logstr.." rot1dir="..bnst[lv][b].rot1dir.." rot1yper="..bnst[lv][b].rot1yper360
       logstr=logstr.." rot2rad="..bnst[lv][b].rot2radius.." rot2yper="..bnst[lv][b].rot2yper360.." rot2dir="..bnst[lv][b].rot2dir
       logstr=logstr.." crazy1="..bnst[lv][b].crazy1.." crazy2="..bnst[lv][b].crazy2
@@ -223,9 +232,9 @@ function beanstalk.create_beanstalks()
       bnst[lv][b].pos.y=bnst[lv].bot
       bnst[lv][b].pos.z=-31000 + (bnst[lv].area * (math.floor(b/bnst[lv].per_row) % bnst[lv].per_row) + 500 + math.random(0,bnst[lv].area-1000) )
 
-      --total number of vines
-      if math.random(1,4)<4 then bnst[lv][b].vtot=3
-      else bnst[lv][b].vtot=math.random(2,5)
+      --total number of stems
+      if math.random(1,4)<4 then bnst[lv][b].stemtot=3
+      else bnst[lv][b].stemtot=math.random(2,5)
       end
 
       --direction of rotation of the inner spiral
@@ -233,21 +242,21 @@ function beanstalk.create_beanstalks()
       else bnst[lv][b].rot1dir=-1
       end
 
-      --radius of each vine
-      if math.random(1,4)<4 then bnst[lv][b].vineradius=math.random(2,6)
-      else bnst[lv][b].vineradius=math.random(3,9)
+      --radius of each stem
+      if math.random(1,4)<4 then bnst[lv][b].stemradius=math.random(2,6)
+      else bnst[lv][b].stemradius=math.random(3,9)
       end
 
-      --the radius the vines rotate around
+      --the radius the stems rotate around
       if math.random(1,4)<4 then bnst[lv][b].rot1radius=math.random(5,8)
       else bnst[lv][b].rot1radius=math.random(3,10)
       end
-      --vines merge too much if the rotation radius isn't at least vineradius
-      --and vine radius +1 looks better in my opinion
-      if bnst[lv][b].rot1radius<bnst[lv][b].vineradius then bnst[lv][b].rot1radius=bnst[lv][b].vineradius+1
+      --stems merge too much if the rotation radius isn't at least stemradius
+      --and stem radius +1 looks better in my opinion
+      if bnst[lv][b].rot1radius<bnst[lv][b].stemradius then bnst[lv][b].rot1radius=bnst[lv][b].stemradius+1
       end
 
-      --y units per one 360 degree rotation of a vine
+      --y units per one 360 degree rotation of a stem
       local c=beanstalk.voxel_circum(bnst[lv][b].rot1radius)
       if math.random(1,4)<4 then bnst[lv][b].rot1yper360=math.floor(math.random(c,80))
       else bnst[lv][b].rot1yper360=math.floor(math.random(c*0.75,100))
@@ -271,7 +280,7 @@ function beanstalk.create_beanstalks()
 
       --crazy1
       --crazy gives us a number from 0 to 6 (may expand that in the future, and we manipulate it below)
-      --the biger the number, the bigger the range of change in the crazy vine rot1radius value
+      --the biger the number, the bigger the range of change in the crazy stem rot1radius value
       --note that this is the number we change each way, so crazy=3 means from radius-3 to radius+3
       --and crazy=6 is a whopping TWELVE change in radius, that should be VERY noticible
       --in calculated_constants_bybnst we use crazy1 to set rot1min and rot1max
@@ -425,8 +434,8 @@ function beanstalk.gen_beanstalk(minp, maxp, seed)
   local data = vm:get_data()
 
   local changedany=false
-  local vinex={ } --initializing the variable so we can use it for an array later
-  local vinez={ }
+  local stemx={ } --initializing the variable so we can use it for an array later
+  local stemz={ }
   local rot1radius
   local rot2radius
   local y
@@ -491,18 +500,18 @@ function beanstalk.gen_beanstalk(minp, maxp, seed)
     cz=bnst[lv][b].pos.z+rot2radius*math.sin(a2*math.pi/180)
     --now cx and cz are the new center of the beanstalk
 
-    for v=0, bnst[lv][b].vtot-1 do --calculate centers for each vine
+    for v=0, bnst[lv][b].stemtot-1 do --calculate centers for each vine
       -- an attempt to explain this rather complicated looking formula:
-      -- (360/bnst[lv][b].vtot)*v       gives me starting angle for this vine
+      -- (360/bnst[lv][b].stemtot)*v       gives me starting angle for this vine
       -- +(360/bnst[lv][b].rot1yper360) the change in angle for each y up
       --   (y-bnst[lv][b].pos.y)        the y pos in this beanstalk
       --                         % bnst[lv][b].rot1yper360)  get mod of yper360, together this gives us how many y up we are (for this section)
       -- *((y-bnst[lv][b].pos.y) % bnst[lv][b].rot1yper360)  multiply change in angle for each y, by how many y up we are in this section
       -- *bnst[lv][b].rot1dir  makes us rotate clockwise or counter clockwise
-      a1=(360/bnst[lv][b].vtot)*v+(360/bnst[lv][b].rot1yper360)*((y-bnst[lv][b].pos.y) % bnst[lv][b].rot1yper360)*bnst[lv][b].rot1dir
+      a1=(360/bnst[lv][b].stemtot)*v+(360/bnst[lv][b].rot1yper360)*((y-bnst[lv][b].pos.y) % bnst[lv][b].rot1yper360)*bnst[lv][b].rot1dir
       --now that we have the rot2 center cx,cz, and the offset angle, we can calculate the center of this vine
-      vinex[v]=cx+rot1radius*math.cos(a1*math.pi/180)
-      vinez[v]=cz+rot1radius*math.sin(a1*math.pi/180)
+      stemx[v]=cx+rot1radius*math.cos(a1*math.pi/180)
+      stemz[v]=cz+rot1radius*math.sin(a1*math.pi/180)
     end --for v
 
     --we are inside the repeat loop that loops through the chunc based on y (from bottom up)
@@ -514,23 +523,23 @@ function beanstalk.gen_beanstalk(minp, maxp, seed)
         local changedthis=false
         local v=0
         repeat  --loops through the vines until we set the node or run out of vines
-          local dist=math.sqrt((x-vinex[v])^2+(z-vinez[v])^2)
-          if dist <= bnst[lv][b].vineradius then  --inside stalk
+          local dist=math.sqrt((x-stemx[v])^2+(z-stemz[v])^2)
+          if dist <= bnst[lv][b].stemradius then  --inside stalk
             data[vi]=bnst_stalk
             changedany=true
             changedthis=true
             --minetest.log("--- -- stalk placed at x="..x.." y="..y.." z="..z.." (v="..v..")")
           --this else says to check for adding climbing vines if we are 1 node outside stalk of a beanstalk vine
           --(it is confusing that I call them both vine.  I should have called it stalks and vines)
-          elseif dist<=(bnst[lv][b].vineradius+1) then --one node outside stalk
-            if beanstalk.checkvines(x,y,z, vinex[v],vinez[v], area,data)==true then
+          elseif dist<=(bnst[lv][b].stemradius+1) then --one node outside stalk
+            if beanstalk.checkvines(x,y,z, stemx[v],stemz[v], area,data)==true then
               changedany=true
               changedthis=true
               --minetest.log("--- -- vine placed at x="..x.." y="..y.." z="..z.."(v="..v..")")
             end --changed vines
           end  --if dist
           v=v+1 --next vine
-        until v > bnst[lv][b].vtot-1 or changedthis==true
+        until v > bnst[lv][b].stemtot-1 or changedthis==true
         --add air around the stalk.  (so if we drill through a floating island or another level of land, the beanstalk will have room to climb)
         --not doing this right now, may change my mind later
         --if changedthis==false and (math.sqrt((x-cx)^2+(z-cz)^2) < bnst[lv][b].totradius) and (y > bnst[lv][b].pos.y+30) then
