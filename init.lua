@@ -2,6 +2,8 @@
 
 beanstalk = { } --will be used to hold functions.
 
+dofile(minetest.get_modpath("beanstalk").."/nodes.lua")
+
 --These are the constants that need to be modified based on your game needs
 --we store all the important variables in a single table, bnst, this makes it easy to
 --write to a file and read from a file
@@ -48,7 +50,7 @@ end --voxel_circum
 
 --this runs BEFORE create_beanstalks_rnd (but after read from file)
 function beanstalk.calculated_constants_1()
-  --calculated constants by level  
+  --calculated constants by level
   minetest.log("beanstalk-> calculated constants by level")
   for lv=0,bnst.level_max do
     bnst[lv].per_row=math.floor(math.sqrt(bnst[lv].count))  --beanstalks per row are the sqrt of beanstalks per level
@@ -67,11 +69,11 @@ function beanstalk.calculated_constants_2()
   minetest.log("beanstalk-> list --------------------------------------")
   for lv=0,bnst.level_max do  --loop through the levels
     minetest.log("***beanstalk-> level="..lv.." ***")
-    for b=0,bnst[lv].max do   --loop through the beanstalks        
-      bnst[lv][b].rot1min=bnst[lv][b].rot1radius --default if we dont set crazy 
-      bnst[lv][b].rot1max=bnst[lv][b].rot1radius --default if we dont set crazy 
+    for b=0,bnst[lv].max do   --loop through the beanstalks
+      bnst[lv][b].rot1min=bnst[lv][b].rot1radius --default if we dont set crazy
+      bnst[lv][b].rot1max=bnst[lv][b].rot1radius --default if we dont set crazy
       bnst[lv][b].rot2min=bnst[lv][b].rot2radius --default if we dont set crazy *!*
-      bnst[lv][b].rot2max=bnst[lv][b].rot2radius --default if we dont set crazy *!*  
+      bnst[lv][b].rot2max=bnst[lv][b].rot2radius --default if we dont set crazy *!*
       if bnst[lv][b].crazy1>0 then
         --determine the min and max we will move the rot1radius through
         bnst[lv][b].rot1max=bnst[lv][b].rot1radius+bnst[lv][b].crazy1
@@ -81,13 +83,13 @@ function beanstalk.calculated_constants_2()
           bnst[lv][b].rot1min=bnst[lv][b].vineradius
         end --if rot1min<vineradius
       end --if crazy1>0
-      
+
       --now, right here would be a GREAT place to create and store the perlin noise.
       --BUT, you can do that at this point, because the map isn't generated.  and for some odd reason, the perlin noise function
       --exits as nil if you use it before map generation.  so we will do it in the generation loop
       --perlin noise is random, but SMOOTH, so it makes interesting looking vine changes.
-      --we need to play with the perlin noise values and see if we can get results we like better  
-      
+      --we need to play with the perlin noise values and see if we can get results we like better
+
       if bnst[lv][b].crazy2>0 then
         --determine the min and max we will move the rot2radius through
         bnst[lv][b].rot2max=bnst[lv][b].rot2radius+bnst[lv][b].crazy2
@@ -96,8 +98,8 @@ function beanstalk.calculated_constants_2()
           bnst[lv][b].rot2max=bnst[lv][b].rot2max+math.abs(bnst[lv][b].rot2min) --add what we take off the min to the max
           bnst[lv][b].rot2min=0
         end --if rot2min<0
-      end --if crazy2>0    
-      
+      end --if crazy2>0
+
       -- total radius = rot1radius (radius vines circle around) + vine radius + 2 more for a space around the beanstalk (will be air)
       -- so this is the total radius around the current center
       bnst[lv][b].totradius=bnst[lv][b].rot1max+bnst[lv][b].vineradius+2
@@ -114,10 +116,10 @@ function beanstalk.calculated_constants_2()
       logstr=logstr.." rot2rad="..bnst[lv][b].rot2radius.." rot2yper="..bnst[lv][b].rot2yper360.." rot2dir="..bnst[lv][b].rot2dir
       logstr=logstr.." crazy1="..bnst[lv][b].crazy1.." crazy2="..bnst[lv][b].crazy2
       bnst[lv][b].desc=logstr
-      minetest.log(logstr)       
+      minetest.log(logstr)
     end --for b
-  end --for lv  
-  minetest.log("beanstalk-> list --------------------------------------")  
+  end --for lv
+  minetest.log("beanstalk-> list --------------------------------------")
 end --calculated_constants_2
 
 
@@ -131,7 +133,7 @@ function beanstalk.write_beanstalks()
       bnst[lv].per_row=nil
       bnst[lv].area=nil
       bnst[lv].top=nil
-      for b=0,bnst[lv].max do   --loop through the beanstalks      
+      for b=0,bnst[lv].max do   --loop through the beanstalks
         bnst[lv][b].rot1min=nil
         bnst[lv][b].rot1max=nil
         bnst[lv][b].rot2min=nil
@@ -142,9 +144,9 @@ function beanstalk.write_beanstalks()
         bnst[lv][b].maxp=nil
         bnst[lv][b].desc=nil
       end --for b
-      bnst[lv].max=nil      
-    end --for lv       
-    
+      bnst[lv].max=nil
+    end --for lv
+
 		file:write(minetest.serialize(bnst))
 		file:close()
 	end
@@ -164,11 +166,11 @@ function beanstalk.create_beanstalks()
   --values as they wish.  (such as moving a beanstalk near spawn if they want)
   local logstr
   local lv=0
-  
+
   --we need these values calculated before we do some of the things below:
   beanstalk.calculated_constants_1()
-  
-  --get_mapgen_params is deprecated; use get_mapgen_setting 
+
+  --get_mapgen_params is deprecated; use get_mapgen_setting
   --local mg_params = minetest.get_mapgent_setting()
   local mg_params = minetest.get_mapgen_params()  --this is how we get the mapgen seed
 
@@ -176,10 +178,11 @@ function beanstalk.create_beanstalks()
     for b=0,bnst[lv].max do   --loop through the beanstalks
 
       --this defines the variable, I THINK I've finally got this part formatted correctly, mostly anyway.
-      bnst[lv][b]={["pos"]={["x"]=0,["y"]=0,["z"]=0},["rot1radius"]=0,["rot1dir"]=0,["vineradius"]=0,["vtot"]=0,
-                   ["rot1yper360"]=0,["rot2radius"]=0,["rot2yper360"]=0,["rot2dir"]=0,["totradius"]=0,["fullradius"]=0,
-                   ["minp"]=0,["maxp"]=0,["desc"]=0,["seed"]=0,["crazy1"]=0,["crazy2"]=0,["rot1min"]=0,["rot1max"]=0,
-                   ["rot2min"]=0,["rot2max"]=0,["noise1"]=0,["noise2"]=0}
+      --bnst[lv][b]={["pos"]={["x"]=0,["y"]=0,["z"]=0},["rot1radius"]=0,["rot1dir"]=0,["vineradius"]=0,["vtot"]=0,
+      --             ["rot1yper360"]=0,["rot2radius"]=0,["rot2yper360"]=0,["rot2dir"]=0,["totradius"]=0,["fullradius"]=0,
+      --             ["minp"]=0,["maxp"]=0,["desc"]=0,["seed"]=0,["crazy1"]=0,["crazy2"]=0,["rot1min"]=0,["rot1max"]=0,
+      --             ["rot2min"]=0,["rot2max"]=0,["noise1"]=0,["noise2"]=0}
+      bnst[lv][b]={ }
 
       --the seed looses digits near the end, probably I'm not storing it in the right kind of number var?
       --anyway, unless we multiply the lv and b up high like this, adding them to the seed makes no difference
@@ -187,6 +190,7 @@ function beanstalk.create_beanstalks()
       math.randomseed(bnst[lv][b].seed)
 
       --note that our random position is always at least 500 from the border, so that beanstalks can NEVER be right next to each other
+      bnst[lv][b].pos={ }
       bnst[lv][b].pos.x=-31000 + (bnst[lv].area * (b % bnst[lv].per_row) + 500+math.random(0,bnst[lv].area-1000) )
       --minetest.log("bnstx 2: lv="..lv.." bnst[lv].bot="..bnst[lv].bot)
       bnst[lv][b].pos.y=bnst[lv].bot
@@ -249,7 +253,7 @@ function beanstalk.create_beanstalks()
       if bnst[lv][b].crazy1<0 then bnst[lv][b].crazy1=0 end
       if bnst[lv][b].crazy1>0 then
         --very low values for crazy are just not visible enough of an effect, so we increase so min is 3
-        bnst[lv][b].crazy1=bnst[lv][b].crazy1+2        
+        bnst[lv][b].crazy1=bnst[lv][b].crazy1+2
       end --if crazy1>0
 
       --crazy2 like crazy1, but this is for the outer spiral
@@ -265,17 +269,17 @@ function beanstalk.create_beanstalks()
 
   --now that we have created all the values, we need to write them to the file.
   beanstalk.write_beanstalks()
-  --but that wiped out some of our calculated constants 1, so lets redo them 
+  --but that wiped out some of our calculated constants 1, so lets redo them
   beanstalk.calculated_constants_1()
   --and also get the beanstalk level calculated constants
-  beanstalk.calculated_constants_2()  
+  beanstalk.calculated_constants_2()
 end --create_beanstalks
 
 
 
 
 --get beanstalks, from file if exists, otherwise generate
-function beanstalk.read_beanstalks()  
+function beanstalk.read_beanstalks()
   minetest.log("beanstalk-> reading beanstalks file")
   local file = io.open(minetest.get_worldpath().."/beanstalks", "r")
   if file then
@@ -284,215 +288,15 @@ function beanstalk.read_beanstalks()
   	if bnst == nil then
   	  print("beanstalk: ERROR: beanstalk file exists but is empty, will recreate")
   	  beanstalk.create_beanstalks()
-    else  --file exists and was loaded 
+    else  --file exists and was loaded
       beanstalk.calculated_constants_1()
-      beanstalk.calculated_constants_2() 
-  	end  --if bnst==nil    
-  	file:close() 
+      beanstalk.calculated_constants_2()
+  	end  --if bnst==nil
+  	file:close()
   else --file does not exist
     beanstalk.create_beanstalks()
   end --if file
 end --read_beanstalks
-
-
---this registers the beanstalk node
---in future, we might want different nodes with different colors/patterns
---to be used on different levels?
---also, may want to make this NOT flamable and hard to chop?
-minetest.register_node("beanstalk:beanstalk", {
-  description = "Beanstalk Stalk",
-  tiles = {"beanstalk_top_32.png", "beanstalk_top_32.png", "beanstalk_side_32.png"},
-  paramtype2 = "facedir",
-  is_ground_content = false,
-  --climbable = true,
-  groups = {snappy=1,choppy=3,flammable=2},
-  sounds = default.node_sound_wood_defaults(),
-  on_place = minetest.rotate_node,
-
-  --after_dig_node = function(pos, node, metadata, digger)
-  --  default.dig_up(pos, node, digger)
-  --end,
-})
-
---this registers the vine node.  later we might want to make this so
---that it only registers a new node if you are not using a mod that
---already has vines.
---copied from ethereal
-minetest.register_node("beanstalk:vine", {
-  description = "BeanstalkVine",
-  drawtype = "signlike",
-  tiles = {"vine.png"},
-  inventory_image = "vine.png",
-  wield_image = "vine.png",
-  paramtype = "light",
-  paramtype2 = "wallmounted",
-  walkable = false,
-  climbable = true,
-  is_ground_content = false,
-  selection_box = {
-    type = "wallmounted",
-  },
-  groups = {choppy = 3, oddly_breakable_by_hand = 1, flammable = 2},
-  legacy_wallmounted = true,
-  sounds = default.node_sound_leaves_defaults(),
-})
-
-
-
-
---https://forum.minetest.net/viewtopic.php?f=9&t=2333&hilit=node+box
-minetest.register_node("beanstalk:leaf", {
-	description = "beanstalk:leaf",
-  drawtype = "nodebox",
-  tiles = {"beanstalk-leaf-top.png","beanstalk-leaf-top.png","beanstalk-leaf-top.png",
-           "beanstalk-leaf-top.png","beanstalk-leaf-top.png","beanstalk-leaf-top.png"},
-  paramtype = "light",
-  paramtype2 = "facedir",
-	inventory_image = "beanstalk-leaf-top.png",
-	wield_image = "beanstalk-leaf-top.png",
-  groups = {snappy=1,choppy=3,flammable=2},
-  sounds = default.node_sound_wood_defaults(),
-  walkable = true,
-  climbable= false,
-  is_ground_content = false,
-    node_box = {
-      type = "fixed",
-      --fixed = {-0.5, -0.5, -0.5, 0.5, 0, 0.5}, --makes half block
-      --fixed = {-0.5, -0.5, -0.5, 0.5,-0.25, 0.5},--makes quarter block
-      --fixed = {-0.5, -0.5, -0.5, 0.5,-0.25, 0.25}, --quarter height, 3/4 length
-      --fixed = {-0.5, -0.5, -0.5, -0.25,-0.25, 0.5},  --this makes a 1/4 x 1/4 rectangle!
-      --fixed = {-0.5, -0.5, -0.5, -0.25,-0.25, 0.5},
-			fixed = {-0.5, -0.5, -0.5, 0.5, -0.4375, 0.5}, -- NodeBox1
-    }
-})
-
-
-minetest.register_node("beanstalk:leaf_edge", {
-	description = "beanstalk:leaf edge",
-  drawtype = "nodebox",
-  tiles = {"beanstalk-leaf-top.png","beanstalk-leaf-top.png","beanstalk-leaf-top.png",
-           "beanstalk-leaf-top.png","beanstalk-leaf-top.png","beanstalk-leaf-top.png"},
-  paramtype = "light",
-  paramtype2 = "facedir",
-	inventory_image = "beanstalk-leaf-edge.png",
-	wield_image = "beanstalk-leaf-edge.png",
-  groups = {snappy=1,choppy=3,flammable=2},
-  sounds = default.node_sound_wood_defaults(),
-  walkable = true,
-  climbable= false,
-  is_ground_content = false,
-    node_box = {
-      type = "fixed",
-			fixed={
-      {-0.5, -0.5, -0.5, -0.4375, -0.4375, 0.5}, -- NodeBox1
-			{-0.4375, -0.5, -0.5, -0.375, -0.4375, 0.4375}, -- NodeBox2
-			{-0.375, -0.5, -0.5, -0.3125, -0.4375, 0.375}, -- NodeBox3
-			{-0.3125, -0.5, -0.5, -0.25, -0.4375, 0.3125}, -- NodeBox4
-			{-0.25, -0.5, -0.5, -0.1875, -0.4375, 0.25}, -- NodeBox5
-			{-0.1875, -0.5, -0.5, -0.125, -0.4375, 0.1875}, -- NodeBox6
-			{-0.125, -0.5, -0.5, -0.0625, -0.4375, 0.125}, -- NodeBox7
-			{-0.0625, -0.5, -0.5, 0, -0.4375, 0.0625}, -- NodeBox8
-			{0, -0.5, -0.5, 0.0625, -0.4375, 0}, -- NodeBox9
-			{0.0625, -0.5, -0.5, 0.125, -0.4375, -0.0625}, -- NodeBox10
-			{0.125, -0.5, -0.5, 0.1875, -0.4375, -0.125}, -- NodeBox11
-			{0.1875, -0.5, -0.5, 0.25, -0.4375, -0.1875}, -- NodeBox12
-			{0.25, -0.5, -0.5, 0.3125, -0.4375, -0.25}, -- NodeBox13
-			{0.3125, -0.5, -0.5, 0.375, -0.4375, -0.3125}, -- NodeBox14
-			{0.375, -0.5, -0.5, 0.4375, -0.4375, -0.375}, -- NodeBox15
-			{0.4375, -0.5, -0.5, 0.5, -0.4375, -0.4375}, -- NodeBox16
-      }
-    }
-})
-
-
-
-
-
-minetest.register_node("beanstalk:leaf_point_short", {
-	description = "beanstalk:leaf point short",
-  drawtype = "nodebox",
-  tiles = {"beanstalk-leaf-top.png"},
-  paramtype = "light",
-  paramtype2 = "facedir",
-	inventory_image = "beanstalk-leaf-point-short.png",
-	wield_image = "beanstalk-leaf-point-short.png",
-  groups = {snappy=1,choppy=3,flammable=2},
-  sounds = default.node_sound_wood_defaults(),
-  walkable = true,
-  climbable= false,
-  is_ground_content = false,
-    node_box = {
-      type = "fixed",
-			fixed={
-      {-0.5, -0.5, -0.5, -0.4375, -0.4375, -0.4375}, -- NodeBox1
-			{-0.4375, -0.5, -0.5, -0.375, -0.4375, -0.375}, -- NodeBox2
-			{-0.375, -0.5, -0.5, -0.3125, -0.4375, -0.3125}, -- NodeBox3
-			{-0.3125, -0.5, -0.5, -0.25, -0.4375, -0.25}, -- NodeBox4
-			{-0.25, -0.5, -0.5, -0.1875, -0.4375, -0.1875}, -- NodeBox5
-			{-0.1875, -0.5, -0.5, -0.125, -0.4375, -0.125}, -- NodeBox6
-			{-0.125, -0.5, -0.5, -0.0625, -0.4375, -0.0625}, -- NodeBox7
-			{-0.0625, -0.5, -0.5, 0, -0.4375, 0}, -- NodeBox8
-			{0, -0.5, -0.5, 0.0625, -0.4375, 0}, -- NodeBox9
-			{0.0625, -0.5, -0.5, 0.125, -0.4375, -0.0625}, -- NodeBox10
-			{0.125, -0.5, -0.5, 0.1875, -0.4375, -0.125}, -- NodeBox11
-			{0.1875, -0.5, -0.5, 0.25, -0.4375, -0.1875}, -- NodeBox12
-			{0.25, -0.5, -0.5, 0.3125, -0.4375, -0.25}, -- NodeBox13
-			{0.3125, -0.5, -0.5, 0.375, -0.4375, -0.3125}, -- NodeBox14
-			{0.375, -0.5, -0.5, 0.4375, -0.4375, -0.375}, -- NodeBox15
-			{0.4375, -0.5, -0.5, 0.5, -0.4375, -0.4375}, -- NodeBox16
-      }
-    }
-})
-
-
-minetest.register_node("beanstalk:leaf_stem_join", {
-	description = "beanstalk:leaf stem join",
-  drawtype = "nodebox",
-  tiles = {"beanstalk-leaf-top.png"},
-  paramtype = "light",
-  paramtype2 = "facedir",
-	inventory_image = "beanstalk-leaf-stem-join.png",
-	wield_image = "beanstalk-leaf-stem-join.png",
-  groups = {snappy=1,choppy=3,flammable=2},
-  sounds = default.node_sound_wood_defaults(),
-  walkable = true,
-  climbable= false,
-  is_ground_content = false,
-    node_box = {
-      type = "fixed",
-			fixed={
-			{-0.5, -0.5, -0.5, -0.375, -0.4375, -0.4375}, -- NodeBox1
-			{-0.5, -0.5, -0.4375, -0.3125, -0.4375, -0.375}, -- NodeBox2
-			{-0.5, -0.5, -0.375, -0.1875, -0.4375, -0.3125}, -- NodeBox3
-			{-0.0625, -0.5, -0.5, 0.0625, -0.4375, -0.25}, -- NodeBox4
-			{0.375, -0.5, -0.5, 0.5, -0.4375, -0.4375}, -- NodeBox5
-			{0.3125, -0.5, -0.4375, 0.5, -0.4375, -0.375}, -- NodeBox6
-			{0.1875, -0.5, -0.375, 0.5, -0.4375, -0.3125}, -- NodeBox7
-			{0.125, -0.5, -0.3125, 0.5, -0.4375, -0.25}, -- NodeBox8
-			{-0.5, -0.5, -0.3125, -0.125, -0.4375, -0.25}, -- NodeBox9
-			{-0.5, -0.5, -0.25, 0.5, -0.4375, 0.5}, -- NodeBox10
-      }
-    }
-})
-
-minetest.register_node("beanstalk:leaf_stem", {
-	description = "beanstalk:leaf stem",
-  drawtype = "nodebox",
-  tiles = {"beanstalk-leaf-top.png"},
-  paramtype = "light",
-  paramtype2 = "facedir",
-	inventory_image = "beanstalk-leaf-stem.png",
-	wield_image = "beanstalk-leaf-stem.png",
-  groups = {snappy=1,choppy=3,flammable=2},
-  sounds = default.node_sound_wood_defaults(),
-  walkable = true,
-  climbable= false,
-  is_ground_content = false,
-    node_box = {
-      type = "fixed",
-      fixed={-0.0625, -0.5, -0.5, 0.0625, -0.4375, 0.5}, -- NodeBox1
-    }
-})
 
 
 --grab content IDs -- You need these to efficiently access and set node data.  get_node() works, but is far slower
@@ -544,7 +348,7 @@ function beanstalk.gen_beanstalk(minp, maxp, seed)
   --we dont want to waste any time in this function if the chunk doesnt have
   --a beanstalk in it.
   --so first we loop through the levels, if our chunk is not on a level where beanstalks
-  --exist, we just do a return   
+  --exist, we just do a return
   local chklv=-1
   local lv=-1
   repeat
@@ -733,7 +537,7 @@ function beanstalk.gen_beanstalk(minp, maxp, seed)
   end --if changed write to map
 
   local chugent = math.ceil((os.clock() - t1) * 1000) --grab how long it took
-  minetest.log("bnst["..lv.."]["..b.."] END chunk="..x0..","..y0..","..z0.." - "..x1..","..y1..","..z1.." [beanstalk_gen] "..chugent.." ms") --tell people how long 
+  minetest.log("bnst["..lv.."]["..b.."] END chunk="..x0..","..y0..","..z0.." - "..x1..","..y1..","..z1.." [beanstalk_gen] "..chugent.." ms") --tell people how long
 end -- beanstalk
 
 
