@@ -18,7 +18,7 @@ local bnst={["level_max"]=0}   --(counting up from 0, what is the highest "level
 bnst[0]={"count","bot","height","per_row","area","top","max" }
 bnst[0].count=16
 bnst[0].bot=-10
-bnst[0].height=6000
+bnst[0].height=6015
 --once you create a beanstalk file, these values will be ignored! They only make a difference the FIRST time this
 --code runs when the first beanstalk file is created.  I might need to change that in the future
 
@@ -438,6 +438,8 @@ function beanstalk.gen_beanstalk(minp, maxp, seed)
   local stemz={ }
   local rot1radius
   local rot2radius
+  local stemradius
+  local stemthiny
   local y
   local a1
   local a2
@@ -451,8 +453,18 @@ function beanstalk.gen_beanstalk(minp, maxp, seed)
   if y<bnst[lv][b].minp.y then
     y=bnst[lv][b].minp.y  --no need to start below the beanstalk
   end
+  
+  stemthiny=bnst[lv].top-(bnst[lv][b].stemradius*4) --for the "taper off" logic below
 
   repeat  --this top repeat is where we loop through the chunk based on y
+  
+    --the purpose of this bit of code is to "taper off" the end of the beanstalk at the very top
+    stemradius=bnst[lv][b].stemradius  --default    
+    if y>stemthiny then
+      local disttopdown=(y-stemthiny)-1
+      stemradius=bnst[lv][b].stemradius-((disttopdown/4) % bnst[lv][b].stemradius)
+    end
+    
     --calculate crazy1
     rot1radius=bnst[lv][b].rot1radius
     if bnst[lv][b].crazy1>0 then
@@ -524,14 +536,14 @@ function beanstalk.gen_beanstalk(minp, maxp, seed)
         local v=0
         repeat  --loops through the vines until we set the node or run out of vines
           local dist=math.sqrt((x-stemx[v])^2+(z-stemz[v])^2)
-          if dist <= bnst[lv][b].stemradius then  --inside stalk
+          if dist <= stemradius then  --inside stalk
             data[vi]=bnst_stalk
             changedany=true
             changedthis=true
             --minetest.log("--- -- stalk placed at x="..x.." y="..y.." z="..z.." (v="..v..")")
           --this else says to check for adding climbing vines if we are 1 node outside stalk of a beanstalk vine
           --(it is confusing that I call them both vine.  I should have called it stalks and vines)
-          elseif dist<=(bnst[lv][b].stemradius+1) then --one node outside stalk
+          elseif dist<=(stemradius+1) then --one node outside stalk
             if beanstalk.checkvines(x,y,z, stemx[v],stemz[v], area,data)==true then
               changedany=true
               changedthis=true
@@ -541,11 +553,12 @@ function beanstalk.gen_beanstalk(minp, maxp, seed)
           v=v+1 --next vine
         until v > bnst[lv][b].stemtot-1 or changedthis==true
         --add air around the stalk.  (so if we drill through a floating island or another level of land, the beanstalk will have room to climb)
-        --not doing this right now, may change my mind later
-        --if changedthis==false and (math.sqrt((x-cx)^2+(z-cz)^2) < bnst[lv][b].totradius) and (y > bnst[lv][b].pos.y+30) then
-        --  data[v]=c_air
-        --  changedany=true
-        --end --if changedthis=false
+        if changedthis==false and (math.sqrt((x-cx)^2+(z-cz)^2) <= bnst[lv][b].totradius)
+            and (y > bnst[lv][b].pos.y+30) and (data[vi]~=c_air) then
+          --minetest.log("bnstR setting air=false dist="..math.sqrt((x-cx)^2+(z-cz)^2).." totradius="..bnst[lv][b].totradius.." cx="..cx.." cz="..cz.." y="..y)
+          data[vi]=c_air
+          changedany=true
+        end --if changedthis=false
       end --for z
     end --for x
     --minetest.log("bnst: repeat bottom y="..y)
