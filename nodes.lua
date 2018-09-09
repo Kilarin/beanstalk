@@ -3,18 +3,15 @@
 --in future, we might want different nodes with different colors/patterns
 --to be used on different levels?
 --also, may want to make this NOT flamable and hard to chop?
-minetest.register_node("beanstalk:beanstalk", {
-  description = "Beanstalk Stalk",
-  tiles = {"beanstalk_top_32.png", "beanstalk_top_32.png", "beanstalk_side_32.png"},
+minetest.register_node("beanstalk:beanstalk1", {
+  description = "Beanstalk Stalk1",
+  tiles = {"beanstalk1_top_32.png", "beanstalk1_top_32.png", "beanstalk1_side_32.png"},
   paramtype2 = "facedir",
   is_ground_content = false,
   --climbable = true,
   groups = {snappy=1,level=2,choppy=1,level=2},
   sounds = default.node_sound_wood_defaults(),
   on_place = minetest.rotate_node,
-
-  --after_dig_node = function(pos, node, metadata, digger)
-  --  default.dig_up(pos, node, digger)
   --end,
 })
 
@@ -22,12 +19,12 @@ minetest.register_node("beanstalk:beanstalk", {
 --that it only registers a new node if you are not using a mod that
 --already has vines.
 --copied from ethereal
-minetest.register_node("beanstalk:vine", {
-  description = "BeanstalkVine",
+minetest.register_node("beanstalk:vine1", {
+  description = "BeanstalkVine1",
   drawtype = "signlike",
-  tiles = {"vine.png"},
-  inventory_image = "vine.png",
-  wield_image = "vine.png",
+  tiles = {"vine1.png"},
+  inventory_image = "vine1.png",
+  wield_image = "vine1.png",
   paramtype = "light",
   paramtype2 = "wallmounted",
   walkable = false,
@@ -42,6 +39,37 @@ minetest.register_node("beanstalk:vine", {
 })
 
 
+minetest.register_node("beanstalk:beanstalk2", {
+  description = "Beanstalk Stalk2",
+  tiles = {"beanstalk2_top_32.png", "beanstalk2_top_32.png", "beanstalk2_side_32.png"},
+  paramtype2 = "facedir",
+  is_ground_content = false,
+  --climbable = true,
+  groups = {snappy=1,level=2,choppy=1,level=2},
+  sounds = default.node_sound_wood_defaults(),
+  on_place = minetest.rotate_node,
+  --end,
+})
+
+
+minetest.register_node("beanstalk:vine2", {
+  description = "BeanstalkVine2",
+  drawtype = "signlike",
+  tiles = {"vine2.png"},
+  inventory_image = "vine2.png",
+  wield_image = "vine2.png",
+  paramtype = "light",
+  paramtype2 = "wallmounted",
+  walkable = false,
+  climbable = true,
+  is_ground_content = false,
+  selection_box = {
+    type = "wallmounted",
+  },
+  groups = {choppy = 3, oddly_breakable_by_hand = 1, flammable = 2},
+  legacy_wallmounted = true,
+  sounds = default.node_sound_leaves_defaults(),
+})
 
 
 --https://forum.minetest.net/viewtopic.php?f=9&t=2333&hilit=node+box

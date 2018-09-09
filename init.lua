@@ -8,19 +8,41 @@ beanstalk = { } --will be used to hold functions.
 --it helps to keep the code cleaner and more organized.  I run nodes.lua near the top of init.lua
 --because we use those node definitions in some of the code below
 dofile(minetest.get_modpath("beanstalk").."/nodes.lua")
+--grab content IDs -- You need these to efficiently access and set node data.  get_node() works, but is far slower
+local bnst_stalk1=minetest.get_content_id("beanstalk:beanstalk1")
+local bnst_vine1=minetest.get_content_id("beanstalk:vine1")
+local bnst_stalk2=minetest.get_content_id("beanstalk:beanstalk2")
+local bnst_vine2=minetest.get_content_id("beanstalk:vine2")
+local c_air = minetest.get_content_id("air")
+--to avoid confusion
+--beanstalk=the whole beanstalk plant
+--stalk = the node placed to create the beanstalk stems
+--stem = a beanstalk consist of multiple stems that wind around each other
+--vine = the little vines on the side of the stem that make the beanstalk climbable when vertical
 
 --These are the constants that need to be modified based on your game needs
 --we store all the important variables in a single table, bnst, this makes it easy to
 --write to a file and read from a file
-local bnst={["level_max"]=0}   --(counting up from 0, what is the highest "level" of beanstalks?)
+local bnst={["level_max"]=1}   --(counting up from 0, what is the highest "level" of beanstalks?)
 
 --define by level  (each beanstalk level must have these values defined.  might add "weirdness" and specialized nodes?)
-bnst[0]={"count","bot","height","per_row","area","top","max" }
-bnst[0].count=16
-bnst[0].bot=-10
-bnst[0].height=6015
 --once you create a beanstalk file, these values will be ignored! They only make a difference the FIRST time this
 --code runs when the first beanstalk file is created.  I might need to change that in the future
+--bnst[0]={"count","bot","height","per_row","area","top","max" }
+bnst[0]={ }
+bnst[0].count=16
+bnst[0].bot=-10
+bnst[0].height=6020
+bnst[0].snode=bnst_stalk1
+bnst[0].vnode=bnst_vine1
+
+bnst[1]={ }
+bnst[1].count=16
+bnst[1].bot=5990
+bnst[1].height=5020
+bnst[1].snode=bnst_stalk2
+bnst[1].vnode=bnst_vine2
+
 
 
 --this is the perlin noise that will be used for "crazy" beanstalks
@@ -42,17 +64,8 @@ local np_crazy =
 
 -- ----- below here you shouldnt need to customize -----
 
---grab content IDs -- You need these to efficiently access and set node data.  get_node() works, but is far slower
-local bnst_stalk=minetest.get_content_id("beanstalk:beanstalk")
-local bnst_vines=minetest.get_content_id("beanstalk:vine")
-local c_air = minetest.get_content_id("air")
 
 
---to avoid confusion
---beanstalk=the whole beanstalk plant
---stalk = the node placed to create the beanstalk stems
---stem = a beanstalk consist of multiple stems that wind around each other
---vine = the little vines on the side of the stem that make the beanstalk climbable when vertical
 
 
 --this function calculates (very approximately) the circumference of a circle of radius r in voxels
@@ -79,7 +92,6 @@ end --voxel_circum
 --********************************
 function beanstalk.calculated_constants_bylevel()
   --calculated constants by level
-  minetest.log("beanstalk-> calculated constants by level")
   for lv=0,bnst.level_max do
     bnst[lv].per_row=math.floor(math.sqrt(bnst[lv].count))  --beanstalks per row are the sqrt of beanstalks per level
     bnst[lv].count=bnst[lv].per_row*bnst[lv].per_row  --recalculate to a perfect square
@@ -87,6 +99,8 @@ function beanstalk.calculated_constants_bylevel()
     bnst[lv].max=bnst[lv].count-1  --for use in array
     bnst[lv].area=62000/bnst[lv].per_row
     bnst[lv].top=bnst[lv].bot+bnst[lv].height-1
+    minetest.log("beanstalk-> calculated constants by level lv="..lv.." per_row="..bnst[lv].per_row.." count="..bnst[lv].count..
+        " max="..bnst[lv].max.." area="..bnst[lv].area.." top="..bnst[lv].top)    
   end --for
 end --calculated_constants_bylevel
 
@@ -197,6 +211,23 @@ function beanstalk.write_beanstalks()
 end --write_beanstalks
 
 
+--this function checks to see if two boxes overlap
+--the function is actually pretty simple once you realize that the easiest way to do this
+--is to determine what proves two boxes do NOT overlap.
+--If box1minp.x > box2maxp.x then they can not overlap on that coord.  Likewise, if
+--if box1maxp.x < box1minp.x then they can not overlap on that coord.  So, we check for the opposite,
+--and for each coord
+--********************************
+function check_overlap(box1minp,box1maxp,box2minp,box2maxp)
+  if box1minp.x<=box2maxp.x and box1maxp.x>=box2minp.x and
+     box1minp.y<=box2maxp.y and box1maxp.y>=box2minp.y and
+     box1minp.z<=box2maxp.z and box1maxp.z>=box2minp.z then
+     return true
+  else return false
+  end --if
+end --check_overlap
+
+
 
 --this is the function that randomly generates the beanstalks based on the map seed, level,
 --and beanstalk.  It should usually only run once per game
@@ -227,10 +258,43 @@ function beanstalk.create_beanstalks()
       --all of the random numbers it generates will be the exact SAME numbers if this function is run again.
 
       --note that our random position is always at least 500 from the border, so that beanstalks can NEVER be right next to each other
-      bnst[lv][b].pos={ }
-      bnst[lv][b].pos.x=-31000 + (bnst[lv].area * (b % bnst[lv].per_row) + 500+math.random(0,bnst[lv].area-1000) )
-      bnst[lv][b].pos.y=bnst[lv].bot
-      bnst[lv][b].pos.z=-31000 + (bnst[lv].area * (math.floor(b/bnst[lv].per_row) % bnst[lv].per_row) + 500 + math.random(0,bnst[lv].area-1000) )
+      local overlap=false
+      repeat
+        bnst[lv][b].pos={ }
+        bnst[lv][b].pos.x=-31000 + (bnst[lv].area * (b % bnst[lv].per_row) + 500+math.random(0,bnst[lv].area-1000) )
+        bnst[lv][b].pos.y=bnst[lv].bot
+        bnst[lv][b].pos.z=-31000 + (bnst[lv].area * (math.floor(b/bnst[lv].per_row) % bnst[lv].per_row) + 500 + math.random(0,bnst[lv].area-1000) )
+        --now check to see if this beanstalk overlaps one below it.  the odds of this are tiny tiny tiny, but must be prevented anyway
+        if lv>0 then 
+          local lvdn=lv-1
+          local bdn=0
+          --note that when this runs, minp and maxp have not been calculated yet for any beanstalks!
+          --so we just make them up with a distance of 250 for each, guaranteeing a distance of 500 between beanstalks
+          local bnst1minp={ }
+          bnst1minp.x=bnst[lv][b].pos.x-250  
+          bnst1minp.y=bnst[lv][b].pos.y
+          bnst1minp.z=bnst[lv][b].pos.z-250          
+          local bnst1maxp={ }
+          bnst1maxp.x=bnst[lv][b].pos.x+250  
+          bnst1maxp.y=bnst[lv][b].pos.y
+          bnst1maxp.z=bnst[lv][b].pos.z+250
+          local bnst2minp={ }
+          bnst2minp.x=bnst[lvdn][bdn].pos.x-250  
+          bnst2minp.y=bnst[lvdn][bdn].pos.y
+          bnst2minp.z=bnst[lvdn][bdn].pos.z-250          
+          local bnst2maxp={ }
+          bnst2maxp.x=bnst[lvdn][bdn].pos.x+250  
+          bnst2maxp.y=bnst[lvdn][bdn].pos.y
+          bnst2maxp.z=bnst[lvdn][bdn].pos.z+250                                                      
+          repeat
+            if check_overlap(bnst1minp,bnst1maxp,bnst2minp,bnst2maxp) then
+              overlap=true
+            end 
+            bdn=bdn+1
+          until bdn>bnst[lvdn].max or overlap==true
+        end --if lv>0
+      until overlap==false              
+
 
       --total number of stems
       if math.random(1,4)<4 then bnst[lv][b].stemtot=3
@@ -342,15 +406,15 @@ end --read_beanstalks
 --if this location is not itself a vine or beanstalk, AND, the position directly below
 --this position IS a beanstalk, then we add a vine.  That way vines appear on vertical
 --surfaces, but not where you have nice climbable stair steps.
---parms: x,y,z pos of this node, vcx vcz center of this vine, also pass area and data so we can check below
+--parms: lv=current level  x,y,z pos of this node, vcx vcz center of this vine, also pass area and data so we can check below
 --********************************
-function beanstalk.checkvines(x,y,z, vcx,vcz, area,data)
+function beanstalk.checkvines(lv, x,y,z, vcx,vcz, area,data)
   local changed=false
   local vn = area:index(x, y, z)  --we get the node we are checking
   local vndown = area:index(x, y-1, z)  --and the node right below the one we are checking
   --if vn is not beanstalk or vines, and vndown is not beanstalk, then we will place a vine
-  if data[vn]~=bnst_stalk and data[vn]~=bnst_vines and data[vndown]~=bnst_stalk then
-    data[vn]=bnst_vines
+  if data[vn]~=bnst[lv].snode and data[vn]~=bnst[lv].vnode and data[vndown]~=bnst[lv].snode then
+    data[vn]=bnst[lv].vnode
     changed=true
     local pos={x=x,y=y,z=z}
     local node=minetest.get_node(pos)
@@ -386,29 +450,37 @@ function beanstalk.gen_beanstalk(minp, maxp, seed)
   --a beanstalk in it.
   --so first we loop through the levels, if our chunk is not on a level where beanstalks
   --exist, we just do a return
+  --note that we assume levels are in ascending order so we can stop checking once we pass maxp.y
   local chklv=-1
   local lv=-1
   repeat
     chklv=chklv+1
     if bnst[chklv].bot<=maxp.y and bnst[chklv].top>=minp.y then lv=chklv end
-  until chklv==bnst.level_max or lv>-1
+  until chklv==bnst.level_max or lv>-1  or bnst[chklv+1].bot>maxp.y
   if lv<0 then return end  --quit, we didn't match any level
 
   --now we know we are on a level with beanstalks, so we now need to check each beanstalk to
   --see if they intersect this chunk, if not, we return and waste no more cpu.
   --I think this could be made more efficent, seems we should be able to zero in on which
   --beanstalk to check better than just looping through them.
-  local chkb=-1
-  local b=-1
-  repeat
-    chkb=chkb+1
-    --this checks to see if the chunk is within the beanstalk area
-    if minp.x<=bnst[lv][chkb].maxp.x and maxp.x>=bnst[lv][chkb].minp.x and
-       minp.y<=bnst[lv][chkb].maxp.y and maxp.y>=bnst[lv][chkb].minp.y and
-       minp.z<=bnst[lv][chkb].maxp.z and maxp.z>=bnst[lv][chkb].minp.z then
-         b=chkb  --we are in the beanstalk!
-    end --if
-  until chkb==bnst[lv].max or b>-1
+  --why are we looping through lv again?  because beanstalk levels can overlap (not beanstalks themselves)
+  --but usually a beanstalk on level 0 will start below the surface of level 0, and extend ABOVE the surface of level 1
+  --and the beanstalks of level 1 will start below the surface of level 1, which means they start at less than the top
+  --of the beanstalks from level 0.  so we have to check for TWO levels that might match
+  local b
+  repeat --lv loop again
+    local chkb=-1
+    b=-1
+    repeat
+      chkb=chkb+1
+      --this checks to see if the chunk is within the beanstalk area
+      if check_overlap(minp,maxp,bnst[lv][chkb].minp,bnst[lv][chkb].maxp) then
+           b=chkb  --we are in the beanstalk!
+      end --if
+    until chkb==bnst[lv].max or b>-1    
+    if b<0 then lv=lv+1 end --try next level, in case of lv overlap (not beanstalk overlap)
+  until b>-1 or lv>bnst.level_max or bnst[lv].bot>maxp.y  
+      
   if b<0 then return end --quit; otherwise, you'd have wasted resources
 
   --ok, now we know we are in a chunk that has beanstalk in it, so we need to do the work
@@ -453,18 +525,19 @@ function beanstalk.gen_beanstalk(minp, maxp, seed)
   if y<bnst[lv][b].minp.y then
     y=bnst[lv][b].minp.y  --no need to start below the beanstalk
   end
-  
+
   stemthiny=bnst[lv].top-(bnst[lv][b].stemradius*4) --for the "taper off" logic below
 
   repeat  --this top repeat is where we loop through the chunk based on y
-  
+
     --the purpose of this bit of code is to "taper off" the end of the beanstalk at the very top
-    stemradius=bnst[lv][b].stemradius  --default    
+    stemradius=bnst[lv][b].stemradius  --default
     if y>stemthiny then
       local disttopdown=(y-stemthiny)-1
       stemradius=bnst[lv][b].stemradius-((disttopdown/4) % bnst[lv][b].stemradius)
+      minetest.log("bnstt stemradius="..stemradius)
     end
-    
+
     --calculate crazy1
     rot1radius=bnst[lv][b].rot1radius
     if bnst[lv][b].crazy1>0 then
@@ -537,14 +610,14 @@ function beanstalk.gen_beanstalk(minp, maxp, seed)
         repeat  --loops through the vines until we set the node or run out of vines
           local dist=math.sqrt((x-stemx[v])^2+(z-stemz[v])^2)
           if dist <= stemradius then  --inside stalk
-            data[vi]=bnst_stalk
+            data[vi]=bnst[lv].snode
             changedany=true
             changedthis=true
             --minetest.log("--- -- stalk placed at x="..x.." y="..y.." z="..z.." (v="..v..")")
           --this else says to check for adding climbing vines if we are 1 node outside stalk of a beanstalk vine
           --(it is confusing that I call them both vine.  I should have called it stalks and vines)
           elseif dist<=(stemradius+1) then --one node outside stalk
-            if beanstalk.checkvines(x,y,z, stemx[v],stemz[v], area,data)==true then
+            if beanstalk.checkvines(lv, x,y,z, stemx[v],stemz[v], area,data)==true then
               changedany=true
               changedthis=true
               --minetest.log("--- -- vine placed at x="..x.." y="..y.." z="..z.."(v="..v..")")
@@ -561,10 +634,6 @@ function beanstalk.gen_beanstalk(minp, maxp, seed)
         end --if changedthis=false
       end --for z
     end --for x
-    --minetest.log("bnst: repeat bottom y="..y)
-    --minetest.log("bnstb : x0="..x0.." z0="..z0)
-    --minetest.log(checkcontent(8573,47,8136,area,data," y="..y))
-    --minetest.log(checkcontent(8573,46,8136,area,data," y="..y))
 
     y=y+1 --next y
   until y>bnst[lv][b].maxp.y or y>y1
@@ -573,15 +642,13 @@ function beanstalk.gen_beanstalk(minp, maxp, seed)
   if changedany==true then
     -- Wrap things up and write back to map
     --send data back to voxelmanip
-    --minetest.log(checkcontent(8573,47,8136,area,data," before save chunk "..x0..","..y0..","..z0))
     vm:set_data(data)
     --calc lighting
     vm:set_lighting({day=0, night=0})
     vm:calc_lighting()
     --write it to world
     vm:write_to_map(data)
-    --minetest.log(">>>saved")
-    --minetest.log(checkcontent(8573,47,8136,area,data," after save chunk "..x0..","..y0..","..z0))
+    --minetest.log("beanstalk-> >>saved")
   end --if changed write to map
 
   local chugent = math.ceil((os.clock() - t1) * 1000) --grab how long it took
