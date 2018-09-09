@@ -13,6 +13,12 @@ local bnst_stalk1=minetest.get_content_id("beanstalk:beanstalk1")
 local bnst_vine1=minetest.get_content_id("beanstalk:vine1")
 local bnst_stalk2=minetest.get_content_id("beanstalk:beanstalk2")
 local bnst_vine2=minetest.get_content_id("beanstalk:vine2")
+local bnst_stalk3=minetest.get_content_id("beanstalk:beanstalk3")
+local bnst_vine3=minetest.get_content_id("beanstalk:vine3")
+local bnst_stalk4=minetest.get_content_id("beanstalk:beanstalk4")
+local bnst_vine4=minetest.get_content_id("beanstalk:vine4")
+local bnst_stalk5=minetest.get_content_id("beanstalk:beanstalk5")
+local bnst_vine5=minetest.get_content_id("beanstalk:vine5")
 local c_air = minetest.get_content_id("air")
 --to avoid confusion
 --beanstalk=the whole beanstalk plant
@@ -23,7 +29,7 @@ local c_air = minetest.get_content_id("air")
 --These are the constants that need to be modified based on your game needs
 --we store all the important variables in a single table, bnst, this makes it easy to
 --write to a file and read from a file
-local bnst={["level_max"]=1}   --(counting up from 0, what is the highest "level" of beanstalks?)
+local bnst={["level_max"]=4}   --(counting up from 0, what is the highest "level" of beanstalks?)
 
 --define by level  (each beanstalk level must have these values defined.  might add "weirdness" and specialized nodes?)
 --once you create a beanstalk file, these values will be ignored! They only make a difference the FIRST time this
@@ -42,6 +48,28 @@ bnst[1].bot=5990
 bnst[1].height=5020
 bnst[1].snode=bnst_stalk2
 bnst[1].vnode=bnst_vine2
+
+bnst[2]={ }
+bnst[2].count=16
+bnst[2].bot=10990
+bnst[2].height=5020
+bnst[2].snode=bnst_stalk3
+bnst[2].vnode=bnst_vine3
+
+bnst[3]={ }
+bnst[3].count=9
+bnst[3].bot=15990
+bnst[3].height=5020
+bnst[3].snode=bnst_stalk4
+bnst[3].vnode=bnst_vine4
+
+bnst[4]={ }
+bnst[4].count=9
+bnst[4].bot=20990
+bnst[4].height=5020
+bnst[4].snode=bnst_stalk5
+bnst[4].vnode=bnst_vine5
+
 
 
 

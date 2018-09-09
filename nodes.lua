@@ -72,6 +72,107 @@ minetest.register_node("beanstalk:vine2", {
 })
 
 
+
+minetest.register_node("beanstalk:beanstalk3", {
+  description = "Beanstalk Stalk3",
+  tiles = {"beanstalk3_top_32.png", "beanstalk3_top_32.png", "beanstalk3_side_32.png"},
+  paramtype2 = "facedir",
+  is_ground_content = false,
+  --climbable = true,
+  groups = {snappy=1,level=2,choppy=1,level=2},
+  sounds = default.node_sound_wood_defaults(),
+  on_place = minetest.rotate_node,
+  --end,
+})
+
+
+minetest.register_node("beanstalk:vine3", {
+  description = "BeanstalkVine3",
+  drawtype = "signlike",
+  tiles = {"vine3.png"},
+  inventory_image = "vine3.png",
+  wield_image = "vine3.png",
+  paramtype = "light",
+  paramtype2 = "wallmounted",
+  walkable = false,
+  climbable = true,
+  is_ground_content = false,
+  selection_box = {
+    type = "wallmounted",
+  },
+  groups = {choppy = 3, oddly_breakable_by_hand = 1, flammable = 2},
+  legacy_wallmounted = true,
+  sounds = default.node_sound_leaves_defaults(),
+})
+
+
+minetest.register_node("beanstalk:beanstalk4", {
+  description = "Beanstalk Stalk4",
+  tiles = {"beanstalk4_top_32.png", "beanstalk4_top_32.png", "beanstalk4_side_32.png"},
+  paramtype2 = "facedir",
+  is_ground_content = false,
+  --climbable = true,
+  groups = {snappy=1,level=2,choppy=1,level=2},
+  sounds = default.node_sound_wood_defaults(),
+  on_place = minetest.rotate_node,
+  --end,
+})
+
+
+minetest.register_node("beanstalk:vine4", {
+  description = "BeanstalkVine4",
+  drawtype = "signlike",
+  tiles = {"vine4.png"},
+  inventory_image = "vine4.png",
+  wield_image = "vine4.png",
+  paramtype = "light",
+  paramtype2 = "wallmounted",
+  walkable = false,
+  climbable = true,
+  is_ground_content = false,
+  selection_box = {
+    type = "wallmounted",
+  },
+  groups = {choppy = 3, oddly_breakable_by_hand = 1, flammable = 2},
+  legacy_wallmounted = true,
+  sounds = default.node_sound_leaves_defaults(),
+})
+
+
+minetest.register_node("beanstalk:beanstalk5", {
+  description = "Beanstalk Stalk5",
+  tiles = {"beanstalk5_top_32.png", "beanstalk5_top_32.png", "beanstalk5_side_32.png"},
+  paramtype2 = "facedir",
+  is_ground_content = false,
+  --climbable = true,
+  groups = {snappy=1,level=2,choppy=1,level=2},
+  sounds = default.node_sound_wood_defaults(),
+  on_place = minetest.rotate_node,
+  --end,
+})
+
+
+minetest.register_node("beanstalk:vine5", {
+  description = "BeanstalkVine5",
+  drawtype = "signlike",
+  tiles = {"vine5.png"},
+  inventory_image = "vine5.png",
+  wield_image = "vine5.png",
+  paramtype = "light",
+  paramtype2 = "wallmounted",
+  walkable = false,
+  climbable = true,
+  is_ground_content = false,
+  selection_box = {
+    type = "wallmounted",
+  },
+  groups = {choppy = 3, oddly_breakable_by_hand = 1, flammable = 2},
+  legacy_wallmounted = true,
+  sounds = default.node_sound_leaves_defaults(),
+})
+
+
+
 --https://forum.minetest.net/viewtopic.php?f=9&t=2333&hilit=node+box
 minetest.register_node("beanstalk:leaf", {
 	description = "beanstalk:leaf",
