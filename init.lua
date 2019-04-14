@@ -96,7 +96,7 @@ function beanstalk.copy_prev_bnst_values(lv)
 end --copy_prev_beanstalk_values
 	
 	
---load beanstalk values from file  beanstalk_values.txt
+--load beanstalk values from file  beanstalk_values.conf
 --NOTE: this is NOT the particular settings for each beanstalk.  These are the numbers and
 --formulas used to randomly determine the values for each beanstalk.
 --I put this in a file because folks are going to want to play with/modify these numbers and
@@ -125,15 +125,15 @@ function beanstalk.read_beanstalk_values()
 	local r --will hold what line of the ranomized value table we are loading
 	bnst_values={}
 	bnst_values.level_max=0
-		minetest.log("beanstalk-> file wrldpth="..minetest.get_worldpath().."/beanstalk_values.txt")
-		minetest.log("beanstalk-> file modpath="..minetest.get_modpath("beanstalk").."/beanstalk_values.txt")  
+		minetest.log("beanstalk-> file wrldpth="..minetest.get_worldpath().."/beanstalk_values.conf")
+		minetest.log("beanstalk-> file modpath="..minetest.get_modpath("beanstalk").."/beanstalk_values.conf")  
 	--first we look to see if there is a beanstalks_values file in the world path
-	local file = io.open(minetest.get_worldpath().."/beanstalk_values.txt", "r")
+	local file = io.open(minetest.get_worldpath().."/beanstalk_values.conf", "r")
 	--if its not in the worldpath, try for the modpath
 	if file then
 		minetest.log("beanstalk-> loading beanstalk_values from worldpath:")
 	else  
-		file = io.open(minetest.get_modpath("beanstalk").."/beanstalk_values.txt", "r")    
+		file = io.open(minetest.get_modpath("beanstalk").."/beanstalk_values.conf", "r")    
 		if file then minetest.log("beanstalk-> loading beanstalk_values from modpath") 
 		else minetest.log("beanstalk-> unable to find beanstalk_values file in worldpath or modpath.  This is bad")
 		end --if file (modpath)
