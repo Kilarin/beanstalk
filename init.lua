@@ -378,6 +378,7 @@ local np_crazy =
 --this function calculates (very approximately) the circumference of a circle of radius r in voxels
 --this could be made much more accurate
 --this function has to be way up here because it has to be defined before it is used
+--*!* this is in luautils, it should be used from there, not here.
 --********************************
 function beanstalk.voxel_circum(r)
 	if r==1 then return 4
@@ -539,15 +540,15 @@ end --write_beanstalks
 --if box1maxp.x < box1minp.x then they can not overlap on that coord.  So, we check for the opposite,
 --and for each coord
 --********************************
---*!* this is in lua_utils, why do I have it here?  remove it and test
-function check_overlap(box1minp,box1maxp,box2minp,box2maxp)
-	if box1minp.x<=box2maxp.x and box1maxp.x>=box2minp.x and
-		 box1minp.y<=box2maxp.y and box1maxp.y>=box2minp.y and
-		 box1minp.z<=box2maxp.z and box1maxp.z>=box2minp.z then
-		 return true
-	else return false
-	end --if
-end --check_overlap
+--*!* this is in luautils, why do I have it here?  remove it and test
+--function check_overlap(box1minp,box1maxp,box2minp,box2maxp)
+--	if box1minp.x<=box2maxp.x and box1maxp.x>=box2minp.x and
+--		 box1minp.y<=box2maxp.y and box1maxp.y>=box2minp.y and
+--		 box1minp.z<=box2maxp.z and box1maxp.z>=box2minp.z then
+--		 return true
+--	else return false
+--	end --if
+--end --check_overlap
 
 
 
@@ -614,7 +615,7 @@ function beanstalk.create_beanstalks()
 					bnst2maxp.y=bnst[lvdn][bdn].pos.y
 					bnst2maxp.z=bnst[lvdn][bdn].pos.z+250
 					repeat
-						if check_overlap(bnst1minp,bnst1maxp,bnst2minp,bnst2maxp) then
+						if luautils.check_overlap(bnst1minp,bnst1maxp,bnst2minp,bnst2maxp) then
 							overlap=true
 						end
 						bdn=bdn+1
@@ -761,12 +762,19 @@ return changed
 end --checkvines
 
 
+--this is the function that will generate beanstalks for the realms mod
+--be sure to define the realm as the whole world -33000,-33000,-33000 to 33000,33000,33000
+function beanstalk.gen_beanstalk_realms(parms)
+  beanstalk.gen_beanstalk(parms.chunk_minp,parms.chunk_maxp,parms.seed,parms)
+end --gen_beanstalk
+
+
 --this is the function that will run EVERY time a chunk is generated.
 --see at the bottom of this program where it is registered with:
 --minetest.register_on_generated(gen_beanstalk)
 --minp is the min point of the chunk, maxp is the max point of the chunk
 --********************************
-function beanstalk.gen_beanstalk(minp, maxp, seed)
+function beanstalk.gen_beanstalk(minp, maxp, seed, parms)
 	--we dont want to waste any time in this function if the chunk doesnt have
 	--a beanstalk in it.
 	--so first we loop through the levels, if our chunk is not on a level where beanstalks
@@ -795,7 +803,7 @@ function beanstalk.gen_beanstalk(minp, maxp, seed)
 		repeat
 			chkb=chkb+1
 			--this checks to see if the chunk is within the beanstalk area
-			if check_overlap(minp,maxp,bnst[lv][chkb].minp,bnst[lv][chkb].maxp) then
+			if luautils.check_overlap(minp,maxp,bnst[lv][chkb].minp,bnst[lv][chkb].maxp) then
 					 b=chkb  --we are in the beanstalk!
 			end --if
 		until chkb==bnst[lv].count or b>0
@@ -819,10 +827,18 @@ function beanstalk.gen_beanstalk(minp, maxp, seed)
 	local z0 = minp.z
 
 	--minetest.log("bnst [beanstalk_gen] BEGIN chunk minp ("..x0..","..y0..","..z0..") maxp ("..x1..","..y1..","..z1..")") --tell people you are generating a chunk
-	--This actually initializes the LVM
-	local vm, emin, emax = minetest.get_mapgen_object("voxelmanip")
-	local area = VoxelArea:new{MinEdge=emin, MaxEdge=emax}
-	local data = vm:get_data()
+	local vm,emin,emax,area,data
+	if realms==nil then
+		--This actually initializes the LVM
+		vm, emin, emax = minetest.get_mapgen_object("voxelmanip")
+		area = VoxelArea:new{MinEdge=emin, MaxEdge=emax}
+		data = vm:get_data()
+	else
+		vm=parms.vm
+		area=parms.area
+		data=parms.data
+	end--if realms
+
 
 	local changedany=false
 	local stemx={ } --initializing the variable so we can use it for an array later
@@ -854,7 +870,7 @@ function beanstalk.gen_beanstalk(minp, maxp, seed)
 		if y>stemthiny then
 			local disttopdown=(y-stemthiny)-1
 			stemradius=bnst[lv][b].stemradius-((disttopdown/4) % bnst[lv][b].stemradius)
-			minetest.log("bnstt stemradius="..stemradius)
+			--minetest.log("bnstt stemradius="..stemradius)
 		end
 
 		--calculate rot1crazy
@@ -959,7 +975,7 @@ function beanstalk.gen_beanstalk(minp, maxp, seed)
 	until y>bnst[lv][b].maxp.y or y>y1
 
 
-	if changedany==true then
+	if changedany==true and realms==nil then
 		-- Wrap things up and write back to map
 		--send data back to voxelmanip
 		vm:set_data(data)
@@ -1042,5 +1058,8 @@ beanstalk.read_beanstalk_values()
 beanstalk.read_beanstalks()
 
 --this is what makes the beanstalk function run every time a chunk is generated
-minetest.register_on_generated(beanstalk.gen_beanstalk)
+if realms~=nil then realms.register_rmg("beanstalks",beanstalk.gen_beanstalk_realms)
+else minetest.register_on_generated(beanstalk.gen_beanstalk)
+end 
+
 
