@@ -1,5 +1,5 @@
 # beanstalk
-*beanstalk version 0.2*
+*version 0.2*
 
 This mod creates giant beanstalks stretching up into the sky for thousands of nodes.
 
@@ -11,7 +11,7 @@ This code uses The MIT License, please see [license.txt](license.txt) for detail
 ------------------------------------------------
 
 <details open>
-  <summary>**Click here to collapse the story of _"Illinois Smith and the Giant Beanstalk"_**</summary>
+  <summary>---Click here to collapse the story of "Illinois Smith and the Giant Beanstalk"---</summary>
   
 Early on Illinois Smith had felt restricted by the tamed lands of the east.  He had staked out a small territory of his own, mined useful minerals, built nice equipment, and even constructed a beautiful palace for himself.  But, after a while, it got boring.  There were no new challenges.  And everything just seemed to... safe.  And so, he had packed up all his most useful stuff, and crossed the gulf of the world fracture to venture into the dangerous wilds of the west.
 
@@ -103,7 +103,7 @@ The beanstalk emerged in an area of rolling hills covered with a dark green gras
 
 But here was a whole new world to explore.  New plants and environments, and, he was absolutely certain, new hostile monsters to defend against and defeat. Illinois' soul THRILLED at the challenges, and possibilities, ahead of him.  It would take him a very, VERY, long time to conquer this new world.  And he was quite certain that if and when he did, when the challenges here grew tame, when this new world finally, at long last, seemed to have gotten too easy and boring, he would go hunting again for yet ANOTHER beanstalk, one that would take him?  Who knew where?, except that there would be more and yet MORE challenges ahead.  And THAT made Illinois Smith a VERY happy adventurer!
 
-![Beanstalk 09](https://imgur.com/a/RLJtkYf)
+![Beanstalk 09](https://i.imgur.com/UCVeKwc.jpg) 
 
 THE END
 </details>
@@ -117,11 +117,61 @@ My original vision for that game involved a world built in multiple layers, with
 
 Of course, your first and most obvious question is, how much of the world described in this beanstalk story actually exists?  Uhm, sorry, almost none.  No mobs, no giant cloud castles.  BUT, we do have beanstalks!  My son and I have spent a lot of time on the beanstalks, and I think they are looking really great!
 
-![Beanstalk 10](https://i.imgur.com/nAS4oSC.png) 09
+![Beanstalk 10](https://i.imgur.com/nAS4oSC.png)
 
 Beanstalks were designed with Fractured in mind, but they could work just fine in any world.  They are very customizable, and even if your world isn't based on a layered design, you could still use beanstalks and just have one layer of them that reaches all the way to the top of the minetest cube.
 
 Depending on how you set up the beanstalk-values.conf file, there are literally billions of possible beanstalks.
+
+The beanstalk-values.conf file looks like this:
+
+```
+beanstalk_level=1
+count      =16
+bot        =-10
+height     =6070
+snode      =beanstalk:beanstalk1
+vnode      =beanstalk:vine1
+stemtot    =75|3
+           =20|2;5
+           =05|1;8
+stemradius =75|2;6
+           =20|3;9
+           =05|4;10
+rot1radius =3|5;8
+           =1|3;10
+enforce_min_rot1rad=Y   --Y means rot1rad minimum will be stemradius+1
+rot1dir    =1|1
+           =1|-1
+rot1yper360=3|rot1circumf;80        --you can use variables in these values  
+           =1|rot1circumf;100     
+rot1crazy  =1|0
+           =1|3;8              --very small values for crazy are hard to detect, so I use a minimum of 3
+rot2radius =3|3;rot1radius+5   --yes you can use rot1radius as a value here
+           =1|0;16
+rot2dir    =1|rot1dir       
+           =1|rot1dir*-1
+rot2yper360=3|rot2circumf;100  
+           =1|rot2circumf;500 
+rot2crazy  =1|0
+           =1|5;17        
+
+beanstalk_level=2
+count      =16
+bot        =5990
+height     =5070
+snode      =beanstalk:beanstalk2
+vnode      =beanstalk:vine2
+--if you dont specify stemtot, stemradius, etc, it will use the same values as for the previous beanstalk level
+
+beanstalk_level=3
+count      =16
+bot        =10990
+height     =5070
+snode      =beanstalk:beanstalk3
+vnode      =beanstalk:vine3
+
+```
 
 This is an attempt to explain the math/movement behind beanstalks:
 https://imgur.com/UVPEXIe
