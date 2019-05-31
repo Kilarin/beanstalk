@@ -4,12 +4,12 @@ This mod creates giant beanstalks.  the readme needs a lot of work, obviously.
 *beanstalk version 0.2*
 
 ## License
-This code uses The MIT License, please see [license.txt](license.txt)license.txt for details.
+This code uses The MIT License, please see [license.txt](license.txt) for details.
 
 ![Beanstalk 01](https://i.imgur.com/DhQkFPP.jpg)
 
-<details>
-  <summary>Click to expand-> Illinois Smith and the Giant Beanstalk story:</summary>
+<details open>
+  <summary>Click here to collapse the story of "Illinois Smith and the Giant Beanstalk"</summary>
   
 Early on Illinois Smith had felt restricted by the tamed lands of the east.  He had staked out a small territory of his own, mined useful minerals, built nice equipment, and even constructed a beautiful palace for himself.  But, after a while, it got boring.  There were no new challenges.  And everything just seemed to... safe.  And so, he had packed up all his most useful stuff, and crossed the gulf of the world fracture to venture into the dangerous wilds of the west.
 
