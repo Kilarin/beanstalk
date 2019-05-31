@@ -3,12 +3,13 @@
 
 This mod creates giant beanstalks stretching up into the sky for thousands of nodes.
 
+![Beanstalk 01](https://i.imgur.com/DhQkFPP.jpg)
+
 ## License
 This code uses The MIT License, please see [license.txt](license.txt) for details.
 
-![Beanstalk 01](https://i.imgur.com/DhQkFPP.jpg) 1
+------------------------------------------------
 
----
 <details open>
   <summary>**Click here to collapse the story of _"Illinois Smith and the Giant Beanstalk"_**</summary>
   
@@ -24,7 +25,7 @@ Then one day he heard a rumor that there was a wise sage who lived at the very t
 
 "Well my child," the old man responded.  "You cannot find one in this world."  Illinois sighed in frustration, but the old man held up his hand in a calming gesture and said, "Patience my child, patience!   You cannot find one in this world, but there are more worlds than your simple mind is aware of.  The universe is built in layers, and there are," here he pointed upwards, "more worlds, worlds wonderful, and dangerous, beyond your imagining, hidden above the sky."
 
-![Beanstalk 02](https://i.imgur.com/QrSZVsP.jpg) 5
+![Beanstalk 02](https://i.imgur.com/QrSZVsP.jpg)
 
 Illinois rubbed his chin thoughtfully and said, "I have heard rumors, but they all come to nothing.  I built a jet pack, but it only makes short hops, and will not take me above the sky.  Also, I have friends in the land of Babylon who pursued this rumor. With a great expenditure of time and materials, they built a tower to the sky.  They built it high, MUCH higher than my jet pack can fly.  But eventually they ran into an invisible and impenetrable barrier.  Even the most powerful explosive hammer could not make so much as a crack in that barrier.   If there are further worlds above us, they are impossible to reach."
 
@@ -42,6 +43,7 @@ Illinois Smith scratched his head and said, "The waste, a shadow, living stairwa
 The monk made a disgusted face and a dismissing gesture with his hand.  "Nothing worth having is easy," the old man said.  "You have your clue youngling.  If you are worthy, go!  Go and discover the whole new world that awaits you.  Go pursue the clue, and find new opportunities, and correspondingly greater challenges.  OR, go home.  Go to the east and retire in comfort.  Go to BOREDOM. Either way, it is time for you to go.  The choice of where, is yours"
 
 Illinois took a deep breath, and then he set his hat more firmly upon his head and, with a curt nod, said "Thank you." and turned and left.
+![Beanstalk 03](https://i.imgur.com/uArCaKo.jpg)
 
 It took some time to resupply.  He took little food, for that he could gather along the way.  But he needed fuel for his jet pack, lots of it.  He had to find a good storm and collect lightning for the electric sword he had built.  And he made certain his Dwarven Steel magic armor was in perfect repair.  He usually preferred technology over magic.  But there was simply no denying that, while it had certainly been insufficient to save the wizard who wore it when foolishly attacking Illinois, the magic armor was the best Illinois had. Once Illinois Smith felt that he had prepared as much as he could, he headed into the wild wastes of west to search for... he really wasn't certain what.  What WAS he looking for?  A shadow?  A mystery?  He decided to just call it "Adventure" and to forge forward.
 
@@ -55,7 +57,7 @@ Tall?  It seemed such an inadequate word.  The shadow wasn't tall, it was toweri
 
 What was next in the old man's poem?  "Approach!"  And so Illinois Smith did.  With almost as much reverence as caution.  And gradually, the dark blacks and greys of the shadow merged into a mottled green.   Illinois felt himself trembling, but he kept moving forward, until huge twisted and tangled towers of green emerged from the fog.
 
-![Beanstalk 03](https://i.imgur.com/dgvbRjp.png)  2up
+![Beanstalk 04](https://i.imgur.com/dgvbRjp.png)
 
 It.. It was a beanstalk.
 
@@ -65,7 +67,7 @@ Illinois just stood a the base of the plant for a long time, soaking in the awe 
 
 Illinois Smith checked his jetpack, it was only about half fueled, his electric sword was down to about two thirds charge, and his rations were getting thin.  But it would have to do.  He knew in his mind that he ought to take time to properly resupply and attack this path at peak performance.  But his heart would not stand for the delay.  He grabbed on to one of the enormous stalks and lifted his feet off of the ground for what he knew might be the very last time, and began climbing into the sky.
 
-![Beanstalk 04](https://i.imgur.com/JUtYoMb.jpg)  4
+![Beanstalk 05](https://i.imgur.com/JUtYoMb.jpg)
 
 Climbing the beanstalk was not a simple task.  There were places where the stalk made a gentle slope that he could actually walk along like he was walking up a hill.  But then it would suddenly go straight up into a sheer vertical green cliff and he would have to climb up like an ant.  And every so often, the stem would actually twist backwards on itself into an absolutely unclimbable negative slope.  Then he either had to climb around the side (risky), or find a way to jump to another stalk and proceed from there (also risky).  Luckily, there were plenty of spots where he could actually sit and rest.  At first he had been somewhat frightened of looking over the edge and seeing how far away the ground was.  But eventually the ground was so distant that it was just a blurry picture of green and brown splotches.  Illinois began to think that he about had the beanstalk figured out, when he saw something unusual.
 
@@ -73,7 +75,7 @@ A little way ahead of him was a place where the beanstalk was a lot thicker than
 
 The monster came at him with it's head raised high like a cobra's attack.  A cobra that was over 30 foot long and 8 foot around.  As it struck down at him, Illinois rushed forward inside the attack and plunged his electric sword into the worm's chest. He felt the worm's teeth clenching on the back of his dwarven steel armor, but the monster released it's grip and jerked back when the crackle of the sword releasing lightning hit it.  The worm whipped it's head around in pain, and, in it's throws, knocked Illinois completely off the beanstalk.
 
-![Beanstalk 05](https://i.imgur.com/kLKmzQS.jpg)  9d
+![Beanstalk 06](https://i.imgur.com/kLKmzQS.jpg)
 
 Illinois didn't waste time worrying about how far away the ground was.  Instead, he slapped the control on his jetpack, wasting his precious fuel, but pushing himself up and back to the beanstalk. He managed to land a little way above the still writhing monster. But any thought of out climbing the beast died when he saw the bleeding, but obviously still healthy creature begin climbing up towards him.  There was no question it was climbing faster than Illinois ever could.  So instead of going up, he waited until the positioning was just right, and jumped down, landing in the middle of the giant horn worms back.  He plunged his sword into the monster's back repeatedly as he held on for dear life.  The worm twisted and writhed, trying to bend back far enough that it could bite him.  But eventually the creatures motions slowed down to just spasms.  And then it started slipping.  With a sense of absolute horror, Illinois realized that it was losing it's grip on the beanstalk.  He yanked his sword out of the worm's flesh and ran along the rapidly sliding back.  He leapt off and caught desperately onto the beanstalk just as the worm went plunging downward.  It's body disappeared into the clouds.  He never heard it hit bottom.  Exhausted, he found a quiet and fairly flat twist in the beanstalk and curled up for some much needed sleep.
 
@@ -81,7 +83,7 @@ It turned out, the horn worm had NOT been alone.  There were more of the creatur
 
 That was when the pterodactyls showed up.  They weren't anywhere near as tough as the giant horn worms, but they tended to work in groups of two or three, and they had a nasty habit of making diving flights at their victims intended to knock them off of the beanstalk.  He ended up being more afraid of the pterodactyls than the giant horn worms, but he was also grateful, because pterodactyl omelets were an increasingly important addition to his diminishing rations.
 
-![Beanstalk 06](https://i.imgur.com/nlxNHjB.png) 10
+![Beanstalk 07](https://i.imgur.com/nlxNHjB.png)
 
 Illinois had lost track of how many days he had been climbing the beanstalk, when he came to the castle that appeared to be made out of solid cloud.  At first he thought it was a long way away, but once he approached it, he realized he had greatly misunderstood it's scale.  It was a giant's castle.  He didn't try to break in the front door or climb over the wall, he just peaked in through one window and inside he saw a boot.  The boot alone was as tall as Illinois.  The Giant was still wearing it.  Illinois Smith, killer of the black dragon, victor of the battle of blood castle, the terror of the west..., dropped from the window in terror and hid.  There was no question the giant was hostile, the oven full of human bones made that clear.  But, Illinois' jetpack was almost empty.  His electric sword had run out of charge a long time ago. His armor was still in good shape, thank goodness for those Dwarves and their magic!  But Illinois knew that the armor wouldn't stand up to even one blow from the tree sized club that giant carried.  One stomp from those giant spiked boots, and Illinois Smith AND his fancy magic armor would be a pancake.  He was completely out classed.  He could not take on this battle. Yet.
 
@@ -89,7 +91,7 @@ As Illinois crept quietly along the solid cloud, sneaking back to the beanstalk,
 
 The beanstalk kept going up, and so did Illinois Smith.  But he was tired.  His rations had run out, he was actively looking for pterodactyl nests now, just out of hunger, but he had seen none since he passed the giants castle.  But he would not turn back, he just kept climbing.  Until he slipped.  He wasn't knocked off the beanstalk by the death throws of a giant horn worm, or by a dive bombing pterodactyl, or even a club wielding giant.  Nope, the great Illinois Smith just took a bad step and fell off.  He hit his jetpack controls, and it gave one sad cough and sputtered out.  No fuel.  This was going to be a humiliating death. Illinois just barely had enough time to wonder how long it would take him to hit the ground, when his back bumped into something. He kicked against it and knocked himself back into the beanstalk. He took some damage, but he was alive, that was the important thing.
 
-![Beanstalk 07](https://i.imgur.com/zPvx3JS.png) 3u
+![Beanstalk 08](https://i.imgur.com/zPvx3JS.png) 3u
 
 But, what had he hit?  Some new deadly monster?  Illinois looked, but there was nothing there, just empty sky.  He held on to the very edge of the beanstalk and reached out as far as he could and... touched a solid, but invisible wall.  The whole beanstalk was boring through an invisible barrier.  It was, it HAD to be, the same barrier that his friends on the Babylon project had hit when they built their tower.  Impenetrable by any weapons or tools known.  BUT, the beanstalk passed right through it.
 
@@ -100,8 +102,13 @@ It almost immediately became pitch black dark.  Illinois had to turn on his crys
 The beanstalk emerged in an area of rolling hills covered with a dark green grass.  In the distance, he could make out mountains through the fog.  Nearby there were trees, but of a kind he had never seen before.  The beanstalk itself, finally petered out here.  The huge individual stalks dwindling down to nothing only a few feet above the surface.
 
 But here was a whole new world to explore.  New plants and environments, and, he was absolutely certain, new hostile monsters to defend against and defeat. Illinois' soul THRILLED at the challenges, and possibilities, ahead of him.  It would take him a very, VERY, long time to conquer this new world.  And he was quite certain that if and when he did, when the challenges here grew tame, when this new world finally, at long last, seemed to have gotten too easy and boring, he would go hunting again for yet ANOTHER beanstalk, one that would take him?  Who knew where?, except that there would be more and yet MORE challenges ahead.  And THAT made Illinois Smith a VERY happy adventurer!
+
+![Beanstalk 09](https://imgur.com/a/RLJtkYf)
+
+THE END
 </details>
----
+
+------------------------------------------------
 
 Ok, sorry about that silliness.  But it seemed like a good way to introduce my vison for Beanstalks.
 
@@ -110,7 +117,7 @@ My original vision for that game involved a world built in multiple layers, with
 
 Of course, your first and most obvious question is, how much of the world described in this beanstalk story actually exists?  Uhm, sorry, almost none.  No mobs, no giant cloud castles.  BUT, we do have beanstalks!  My son and I have spent a lot of time on the beanstalks, and I think they are looking really great!
 
-![Beanstalk 08](https://i.imgur.com/nAS4oSC.png) 09
+![Beanstalk 10](https://i.imgur.com/nAS4oSC.png) 09
 
 Beanstalks were designed with Fractured in mind, but they could work just fine in any world.  They are very customizable, and even if your world isn't based on a layered design, you could still use beanstalks and just have one layer of them that reaches all the way to the top of the minetest cube.
 
