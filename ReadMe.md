@@ -10,6 +10,7 @@ This code uses The MIT License, please see [license.txt](license.txt) for detail
 
 ------------------------------------------------
 
+## Story
 <details open>
   <summary>---Click here to collapse the story of "Illinois Smith and the Giant Beanstalk"---</summary>
   
@@ -91,7 +92,7 @@ As Illinois crept quietly along the solid cloud, sneaking back to the beanstalk,
 
 The beanstalk kept going up, and so did Illinois Smith.  But he was tired.  His rations had run out, he was actively looking for pterodactyl nests now, just out of hunger, but he had seen none since he passed the giants castle.  But he would not turn back, he just kept climbing.  Until he slipped.  He wasn't knocked off the beanstalk by the death throws of a giant horn worm, or by a dive bombing pterodactyl, or even a club wielding giant.  Nope, the great Illinois Smith just took a bad step and fell off.  He hit his jetpack controls, and it gave one sad cough and sputtered out.  No fuel.  This was going to be a humiliating death. Illinois just barely had enough time to wonder how long it would take him to hit the ground, when his back bumped into something. He kicked against it and knocked himself back into the beanstalk. He took some damage, but he was alive, that was the important thing.
 
-![Beanstalk 08](https://i.imgur.com/zPvx3JS.png) 3u
+![Beanstalk 08](https://i.imgur.com/zPvx3JS.png)
 
 But, what had he hit?  Some new deadly monster?  Illinois looked, but there was nothing there, just empty sky.  He held on to the very edge of the beanstalk and reached out as far as he could and... touched a solid, but invisible wall.  The whole beanstalk was boring through an invisible barrier.  It was, it HAD to be, the same barrier that his friends on the Babylon project had hit when they built their tower.  Impenetrable by any weapons or tools known.  BUT, the beanstalk passed right through it.
 
@@ -109,6 +110,8 @@ THE END
 </details>
 
 ------------------------------------------------
+
+# About Beanstalk
 
 Ok, sorry about that silliness.  But it seemed like a good way to introduce my vison for Beanstalks.
 
@@ -173,43 +176,35 @@ vnode      =beanstalk:vine3
 
 ```
 
-This is an attempt to explain the math/movement behind beanstalks:
-https://imgur.com/UVPEXIe
-Does this graphic make any sense to you guys?  Does it help, should it be included in the readme eventually, or just thrown away?
+Now, I realize this looks very confusing at first, but its not as bad as you think.  This graphic is an attempt to explain how the different variables control the shape of the beanstalk:
 
-realms is really just a proof-of-concept place holder replacement for Multiple Map Layer Generator.  Eventually this should be a very customizeable and controlable way to call lua terrain generators based on user input.  The user should be able to specify that he wants the Underground_Realms generator to run between -1000 and -5000, and skylands to run between 2300 and 4000, etc.
+![Beanstalk Variables](https://i.imgur.com/UVPEXIe.jpg)
 
-if you want to explore and see what we've done with the beanstalks so far, install minetest (sudo apt-get install minetest)
-and install fractured: download here: https://github.com/Kilarin/fractured/archive/master.zip
-unzip in the minetest games folder and rename to fractured.
+beanstalk-values.conf sets up how many beanstalks there are on each level, what altitude the beanstalks for that level start at, how high they go, and what the possible range of values for beanstalks are on that level.  The beanstalks locations and actual values will all be determined when the world is first created and written to the world folder as beanstalks.  This file can be edited after world generation if you wanted to move the beanstalks around or change their values.  (this would NOT, of course, affect any already generated chunks)
 
-Run minetest, start game tab, New, select fractured from the game list, give your world a name and specify a seed if you want.
-(specifying a seed means you can recreate the same world whenever you want by using the same seed)
-then click Create, and Play Game.
-Once the game starts enter the command
+To see the randomly rolled beanstalks locations/values you can use the chat command **/list_beanstalks**
+
+To be teleported to a beanstalk, you can use the chat command **/go_beanstalk #,#** where #,# = Level, beanstalk number
+Be aware that currently go_beanstalk does NOT search for actual surface, it just makes a guess and plunks you down.  I need to fix that.
+
+We will need to restrict both of those commands later, of course.
+
+If you want to explore what the beanstalks look like right now, I recommend you install [Fractured](https://forum.minetest.net/viewtopic.php?f=50&t=11346) 
+And start up a fractured game. (If you specify a seed, that will enable you to recrate the same same world with exactly the same beanstalks whenever you want, which can be very handy for testing) then:
 /grant singleplayer all
-this will give you fly, noclip, and teleport, useful if you are just exploring and debugging.
-/list_beanstalks   will display the beanstalks locations and attributes.
-/go_beanstalk 1,1  will take you to beanstalk level 1, beanstalk 1.  etc.
+/list_beanstalks
+and then 
+/go_beanstalk lv,b
+to whichever beanstalk looked interesting on the list.
 
-You are WELCOME to help with this project in any way.  Also, do NOT feel obligated to contribute.  Jesse has been too busy with school to work much on it, and I abandoned fractured for at least two years, because I just got too busy.  Might happen again.
+I welcome help with this project.  I do NOT know what I'm doing, and advice and help will be greatly appreciated.
+------------------------------------
+## STILL TO DO:
 
-Code is here:
-https://github.com/Kilarin/fractured
-https://github.com/Kilarin/beanstalk
-https://github.com/Kilarin/luautils
-https://github.com/Kilarin/realms
-
-so, where are with the project?
-
-* beanstalks uses luautils.string_math which I have ATTEMPTED to sandbox.  No idea if I did it correctly and not getting any help on this topic in the minetest forums.
-
+* beanstalks uses [luautils.string_math](https://github.com/Kilarin/luautils) which I have ATTEMPTED to sandbox.  No idea if I did it correctly and not getting any help on this topic in the minetest forums.
 * at one point I tried to add giant, walkable leaves to the beanstalks.  (my poor graphics are still in textures) this did NOT look good, but I haven't given up on the idea totally.
-
-* realms is coming along nicely, but has a long way to go, see here:
-
-* documentation!  It's too early to be documenting fractured much, but beanstalks at least needs documentation to explain it in its readme.
+* horned worms, pterodactyls, cloud castles and cloud giants.
+* beanstalks are, well, a bit slow to generate.  Since they are rare, this isn't a HUGE problem, but any advice/help on speeding them up would be greatly appreciated.
 
 
-
-
+![Beanstalk 11](https://i.imgur.com/tjz8DIT.jpg)
