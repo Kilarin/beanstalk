@@ -104,7 +104,7 @@ The beanstalk emerged in an area of rolling hills covered with a dark green gras
 
 But here was a whole new world to explore.  New plants and environments, and, he was absolutely certain, new hostile monsters to defend against and defeat. Illinois' soul THRILLED at the challenges, and possibilities, ahead of him.  It would take him a very, VERY, long time to conquer this new world.  And he was quite certain that if and when he did, when the challenges here grew tame, when this new world finally, at long last, seemed to have gotten too easy and boring, he would go hunting again for yet ANOTHER beanstalk, one that would take him?  Who knew where?, except that there would be more and yet MORE challenges ahead.  And THAT made Illinois Smith a VERY happy adventurer!
 
-![Beanstalk 09](https://imgur.com/uqrvnvu)
+![Beanstalk 09](https://i.imgur.com/uqrvnvu.jpg)
 
 THE END
 </details>
@@ -124,9 +124,9 @@ Of course, your first and most obvious question is, how much of the world descri
 
 Beanstalks were designed with Fractured in mind, but they could work just fine in any world.  They are very customizable, and even if your world isn't based on a layered design, you could still use beanstalks and just have one layer of them that reaches all the way to the top of the minetest cube.
 
-Depending on how you set up the beanstalk-values.conf file, there are literally billions of possible beanstalks.
+Depending on how you set up the beanstalk_values.conf file, there are literally billions of possible beanstalks.
 
-The beanstalk-values.conf file looks like this:
+The beanstalk_values.conf file looks like this:
 
 ```
 beanstalk_level=1
@@ -187,15 +187,15 @@ The number BEFORE the vertical bar (pipe) is the chance.  This is not necessaril
 BUT, if the random number is between 6 and 8, the value then is "2;5" this means roll a number between 2 and 5.  So the beanstalk will have anywhere between 2 and 5 stems.
 And if the random number rolled was 9, then the value is "1;8" and that means roll a number between 1 and 8.  So overall, the vast majority of beanstalks will have 3 stems.  A few will have 2,4, or 5.  And very rarely some beanstalks will have 1,6,7 or 8.
 
-There are more details in how to setup the [beanstalk-values.conf](beanstalk-values.conf) file in the file itself.
+There are more details in how to setup the [beanstalk_values.conf](beanstalk_values.conf) file in the file itself.
 
 There are a LOT of variables that go into making up a beanstalk, This graphic is an attempt to explain how the different variables control the shape of the beanstalk:
 
 ![Beanstalk Variables](https://i.imgur.com/UVPEXIe.jpg)
 
-beanstalk-values.conf sets up how many beanstalks there are on each level, what altitude the beanstalks for that level start at, how high they go, and what the possible range of values for beanstalks are on that level.  The beanstalks locations and actual values will all be determined when the world is first created and written to the world folder as beanstalks.  This file can be edited after world generation if you wanted to move the beanstalks around or change their values.  (this would NOT, of course, affect any already generated chunks)
+beanstalk_values.conf sets up how many beanstalks there are on each level, what altitude the beanstalks for that level start at, how high they go, and what the possible range of values for beanstalks are on that level.  The beanstalks locations and actual values will all be determined when the world is first created and written to the world folder as beanstalks.  This file can be edited after world generation if you wanted to move the beanstalks around or change their values.  (this would NOT, of course, affect any already generated chunks)
 
-With the values currently in the example beanstalk-values.conf file, there are many, MANY possible beanstalk configurations.  You can expect every beanstalk in your world to look a bit, or a LOT different from every other beanstalk.
+With the values currently in the example beanstalk_values.conf file, there are many, MANY possible beanstalk configurations.  You can expect every beanstalk in your world to look a bit, or a LOT different from every other beanstalk.
 
 The way I have it currently set up, there will be 16 beanstalks randomly distributed in level 1, 2, and 3 (y=0, y=6000, and y=11000).  They will be evenly (but randomly) distributed in a 4x4 grid.  This means there is one (and only one) beanstalk in a map area 16,000 nodes on a side.  Finding a beanstalk will be difficult, and a very important event.
 
