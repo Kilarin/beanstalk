@@ -104,7 +104,7 @@ The beanstalk emerged in an area of rolling hills covered with a dark green gras
 
 But here was a whole new world to explore.  New plants and environments, and, he was absolutely certain, new hostile monsters to defend against and defeat. Illinois' soul THRILLED at the challenges, and possibilities, ahead of him.  It would take him a very, VERY, long time to conquer this new world.  And he was quite certain that if and when he did, when the challenges here grew tame, when this new world finally, at long last, seemed to have gotten too easy and boring, he would go hunting again for yet ANOTHER beanstalk, one that would take him?  Who knew where?, except that there would be more and yet MORE challenges ahead.  And THAT made Illinois Smith a VERY happy adventurer!
 
-![Beanstalk 09](https://i.imgur.com/UCVeKwc.jpg) 
+![Beanstalk 09](https://imgur.com/uqrvnvu)
 
 THE END
 </details>
@@ -135,9 +135,9 @@ bot        =-10
 height     =6070
 snode      =beanstalk:beanstalk1
 vnode      =beanstalk:vine1
-stemtot    =75|3
-           =20|2;5
-           =05|1;8
+stemtot    =5|3
+           =3|2;5
+           =1|1;8
 stemradius =75|2;6
            =20|3;9
            =05|4;10
@@ -176,21 +176,40 @@ vnode      =beanstalk:vine3
 
 ```
 
-Now, I realize this looks very confusing at first, but its not as bad as you think.  This graphic is an attempt to explain how the different variables control the shape of the beanstalk:
+Now, I realize this looks very confusing at first, but its not as bad as you think.  Lets take one entry out and examine it:
+```
+stemtot=5|3
+       =3|2;5
+       =1|1;8
+```
+stemtot is the name of the variable, this one controls how many stems (vines) a beanstalk might have.  There are three entries for stemtot.
+The number BEFORE the vertical bar (pipe) is the chance.  This is not necessarily a percentage, its just a number.  In this example we have 3 lines with chances of 5, 3, and 1.  The program will roll a random number between 1 and 9 (5+3+1=9), and if it comes up between 1 and 5, stemtot will be 3 and the beanstalk will have 3 stems.
+BUT, if the random number is between 6 and 8, the value then is "2;5" this means roll a number between 2 and 5.  So the beanstalk will have anywhere between 2 and 5 stems.
+And if the random number rolled was 9, then the value is "1;8" and that means roll a number between 1 and 8.  So overall, the vast majority of beanstalks will have 3 stems.  A few will have 2,4, or 5.  And very rarely some beanstalks will have 1,6,7 or 8.
+
+There are more details in how to setup the [beanstalk-values.conf](beanstalk-values.conf) file in the file itself.
+
+There are a LOT of variables that go into making up a beanstalk, This graphic is an attempt to explain how the different variables control the shape of the beanstalk:
 
 ![Beanstalk Variables](https://i.imgur.com/UVPEXIe.jpg)
 
 beanstalk-values.conf sets up how many beanstalks there are on each level, what altitude the beanstalks for that level start at, how high they go, and what the possible range of values for beanstalks are on that level.  The beanstalks locations and actual values will all be determined when the world is first created and written to the world folder as beanstalks.  This file can be edited after world generation if you wanted to move the beanstalks around or change their values.  (this would NOT, of course, affect any already generated chunks)
 
+With the values currently in the example beanstalk-values.conf file, there are many, MANY possible beanstalk configurations.  You can expect every beanstalk in your world to look a bit, or a LOT different from every other beanstalk.
+
+The way I have it currently set up, there will be 16 beanstalks randomly distributed in level 1, 2, and 3 (y=0, y=6000, and y=11000).  They will be evenly (but randomly) distributed in a 4x4 grid.  This means there is one (and only one) beanstalk in a map area 16,000 nodes on a side.  Finding a beanstalk will be difficult, and a very important event.
+
+There are two chat commands added that make exploring beanstalks easier:
+
 To see the randomly rolled beanstalks locations/values you can use the chat command **/list_beanstalks**
 
-To be teleported to a beanstalk, you can use the chat command **/go_beanstalk #,#** where #,# = Level, beanstalk number
+To be teleported to a beanstalk, you can use the chat command **/go_beanstalk #,#** where #,# = Level, beanstalk number  (so /go_beanstalk 1,1  will teleport you to level 1, beanstalk 1)
 Be aware that currently go_beanstalk does NOT search for actual surface, it just makes a guess and plunks you down.  I need to fix that.
 
 We will need to restrict both of those commands later, of course.
 
 If you want to explore what the beanstalks look like right now, I recommend you install [Fractured](https://forum.minetest.net/viewtopic.php?f=50&t=11346) 
-And start up a fractured game. (If you specify a seed, that will enable you to recrate the same same world with exactly the same beanstalks whenever you want, which can be very handy for testing) then:
+And start up a fractured game. (If you specify a seed, that will enable you to recreate the same same world with exactly the same beanstalks whenever you want, which can be very handy for testing) then:
 /grant singleplayer all
 /list_beanstalks
 and then 
@@ -203,7 +222,7 @@ I welcome help with this project.  I do NOT know what I'm doing, and advice and 
 
 * beanstalks uses [luautils.string_math](https://github.com/Kilarin/luautils) which I have ATTEMPTED to sandbox.  No idea if I did it correctly and not getting any help on this topic in the minetest forums.
 * at one point I tried to add giant, walkable leaves to the beanstalks.  (my poor graphics are still in textures) this did NOT look good, but I haven't given up on the idea totally.
-* horned worms, pterodactyls, cloud castles and cloud giants.
+* beanstalk specific mobs are needed, horned worms, pterodactyls, cloud castles and cloud giants.
 * beanstalks are, well, a bit slow to generate.  Since they are rare, this isn't a HUGE problem, but any advice/help on speeding them up would be greatly appreciated.
 
 
