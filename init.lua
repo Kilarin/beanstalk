@@ -250,7 +250,7 @@ function beanstalk.read_beanstalk_values()
 				end --if tag="beanstalk_level"  
 			end --equals    
 		end -- for line in file:lines() do
-	beanstalk.copy_prev_bnst_values(bnst_values.level_max)  --got to copy previous values for the last one
+	if lv>1 then beanstalk.copy_prev_bnst_values(bnst_values.level_max) end  --got to copy previous values for the last one
 	end --if file 
 	minetest.log("beanstalk-> beanstalk_values loaded bnst_values.level_max="..bnst_values.level_max)
 	beanstalk.displaybv()
