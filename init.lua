@@ -860,8 +860,10 @@ function beanstalk.checkvines(lv, x,y,z, vcx,vcz, area,data)
 			if (z-vcz)<0 then facedir=4 else facedir=5 end
 		end
 		node.param2=facedir --setting param2 on the node changes where it faces.
-						minetest.log("beanstalk-> set3 swap")
+						minetest.log("beanstalk-> set3 swap type(node)="..type(node))
+				luautils.log_table(node,"swapnode")
 		minetest.swap_node(pos,node)
+		minetest.log("beanstalk-> after swap")
 		--and for some reason I do not understand, you can't set it before you place it.
 		--you have to set it afterwards and then swap it for it to take effect
 	end --if
