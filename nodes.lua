@@ -332,6 +332,8 @@ minetest.register_node("beanstalk:magic_bean", {
   description = "Magic Bean",
   tiles = {"magic_bean.png"},
   paramtype2 = "facedir",
+  wield_image ="magic_bean.png",
+  inventory_image="magic_bean.png",
   is_ground_content = false,
   --climbable = true,
   groups = {snappy=1,level=2,choppy=1,level=2},
